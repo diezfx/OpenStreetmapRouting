@@ -1,0 +1,4 @@
+*.pbf
+*.bin
+vendor/*
+*.pdf

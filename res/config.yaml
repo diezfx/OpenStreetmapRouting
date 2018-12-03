@@ -1,0 +1,19 @@
+#internet|local
+osmLocation: local 
+
+ # "http://download.geofabrik.de/europe/germany-latest.osm.pbf
+ # 
+ #"http://download.geofabrik.de/europe/germany/baden-wuerttemberg-latest.osm.pbf"
+osmFilename: "res/baden-wuerttemberg-latest.osm.pbf"
+
+# 1 parse the osm files and write to file for reuse
+# 0 use existing parsed data
+#### 2 TODO use graph directly after parsing without writing to file
+osmParse: 1
+
+
+
+#json|protobuf are valid  (json not recommended)
+outputType: "protobuf"
+
+outputFilename: "res/output.bin"
