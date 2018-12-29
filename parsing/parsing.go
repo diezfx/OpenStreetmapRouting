@@ -1,11 +1,11 @@
 package parsing
 
 import (
+	"OpenStreetmapRouting/config"
+	"OpenStreetmapRouting/data"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"routingplaner/config"
-	"routingplaner/data"
 	"time"
 
 	log "github.com/sirupsen/logrus"

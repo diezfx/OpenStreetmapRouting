@@ -1,0 +1,77 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Routeplanner
+  license:
+    name: MIT
+servers:
+  - url: localhost:8080/v1
+paths:
+  /route:
+    get:
+      summary: Get a route from source to target
+      operationId: getRoute
+      tags:
+        - pets
+      parameters:
+        - name: startlat
+          in: query
+          description: the latitude of routestart
+          required: true
+          type: number
+        - name: startlon
+          in: query
+          description: the longitude of routestart
+          required: true
+          type: number
+        - name: endlat
+          in: query
+          description: the latitude of route end
+          type: number
+          required: true
+        - name: endlon
+          in: query
+          description: the longitude of route end
+          type: number
+          required: true
+              
+      responses:
+        '200':
+          description: an array of coordinates
+          content:
+            application/json:    
+              schema:
+                $ref: "#/components/schemas/Route"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+
+components:
+  schemas:
+    Coordinates:
+      required:
+        - lat
+        - lon
+      properties:
+        lat:
+          type: number
+        lon:
+          type: number
+    Route:
+      type: array
+      items:
+        $ref: "#/components/schemas/Coordinates"
+    Error:
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string

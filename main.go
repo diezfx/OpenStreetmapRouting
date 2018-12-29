@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
-	"routingplaner/config"
-	"routingplaner/data"
-	"routingplaner/parsing"
+	"OpenStreetmapRouting/config"
+	"OpenStreetmapRouting/data"
+	"OpenStreetmapRouting/parsing"
+	server "OpenStreetmapRouting/server"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -12,21 +12,18 @@ import (
 
 func main() {
 
-	fmt.Println("Beginne")
 	start := time.Now()
-	config := config.LoadConfig("res/config.yaml")
+	config.LoadConfig("res/config.yaml")
 
 	initLogger()
 
-	graphData := parsing.ParseOrLoadGraph(config)
-
-	//add the offset list that is needed for dijkstra
-	graph := data.GraphProd{Nodes: graphData.Nodes, Edges: graphData.Edges}
-	graph.CalcOffsetList()
+	InitGraphProd()
 
 	log.Info("Ready!!")
 	elapsed := time.Since(start)
 	log.Infof("loading took %s", elapsed)
+
+	server.Start()
 }
 
 func initLogger() {
@@ -47,5 +44,17 @@ func initLogger() {
 	log.SetReportCaller(true)
 
 	log.SetLevel(logLevel)
+
+}
+
+//Init calculates the offsetlist and creates the grid for the given graph
+func InitGraphProd() *data.GraphProd {
+
+	conf := config.GetConfig()
+	graphData := parsing.ParseOrLoadGraph(conf)
+
+	g := data.InitGraphProd(graphData, conf)
+
+	return g
 
 }

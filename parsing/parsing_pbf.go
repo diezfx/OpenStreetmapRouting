@@ -1,8 +1,8 @@
 package parsing
 
 import (
+	"OpenStreetmapRouting/data"
 	"fmt"
-	"routingplaner/data"
 	"strconv"
 	"strings"
 

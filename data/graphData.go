@@ -1,15 +1,18 @@
 package data
 
 import (
+	"OpenStreetmapRouting/config"
 	"encoding/json"
 	"io/ioutil"
-	"log"
-	"routingplaner/config"
 	"sort"
 	"sync"
 
+	"github.com/sirupsen/logrus"
 	"github.com/umahmood/haversine"
 )
+
+// instance that is usable by dijkstra
+var graphProd *GraphProd
 
 // GraphRaw contains the node,edge lists and additionaly a map for the old/new id mapping
 type GraphRaw struct {
@@ -59,7 +62,7 @@ func (g *Graph) WriteToFile(config *config.Config) {
 		jsonGraph, err := json.Marshal(g)
 		encodedGraph = jsonGraph
 		if err != nil {
-			log.Fatal(err)
+			logrus.Fatal(err)
 			return
 		}
 
@@ -67,7 +70,7 @@ func (g *Graph) WriteToFile(config *config.Config) {
 		protoGraph, err := g.Marshal()
 		encodedGraph = protoGraph
 		if err != nil {
-			log.Fatal(err)
+			logrus.Fatal(err)
 		}
 
 	}
@@ -101,15 +104,6 @@ func sortEdges(edges []Edge) {
 
 }
 
-//Init calculates the offsetlist and creates the grid for the given graph
-func (g *GraphProd) Init(conf *config.Config) {
-	g.CalcOffsetList()
-
-	grid := Grid{}
-	grid.InitGrid(g, conf)
-
-}
-
 //CalcOffsetList calculates the offset list
 func (g *GraphProd) CalcOffsetList() {
 
@@ -137,4 +131,31 @@ func (g *GraphProd) CalcOffsetList() {
 
 	}
 
+}
+
+// //add the offset list that is needed for dijkstra and the grid
+func InitGraphProd(graphData *Graph, conf *config.Config) *GraphProd {
+
+	g := &GraphProd{Nodes: graphData.Nodes, Edges: graphData.Edges}
+
+	g.CalcOffsetList()
+
+	grid := Grid{}
+	grid.InitGrid(g, conf)
+
+	g.Grid = grid
+
+	graphProd = g
+
+	return g
+
+}
+
+func GetGraphProd() *GraphProd {
+	if graphProd != nil {
+		return graphProd
+	} else {
+		logrus.Fatal("Graph is not initialized")
+	}
+	return nil
 }

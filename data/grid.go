@@ -1,8 +1,8 @@
 package data
 
 import (
+	"OpenStreetmapRouting/config"
 	"math"
-	"routingplaner/config"
 
 	"github.com/sirupsen/logrus"
 )

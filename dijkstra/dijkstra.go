@@ -1,17 +1,26 @@
 package dijkstra
 
 import (
+	"OpenStreetmapRouting/data"
 	"container/heap"
 	"errors"
 	"math"
-	"test/data"
-
-	"github.com/sirupsen/logrus"
 )
+
+func GetRoute(start data.Coordinate, end data.Coordinate) (*data.NodeRoute, error) {
+
+	graph := data.GetGraphProd()
+
+	startNode := graph.Grid.FindNextNode(start.Lat, start.Lon)
+	endNode := graph.Grid.FindNextNode(end.Lat, end.Lon)
+
+	return CalcDijkstra(graph, startNode, endNode)
+
+}
 
 // CalcDijkstra takes a starting node and returns all edges on the way
 // uses edges for the overview of cost and the way to the previous node
-func CalcDijkstra(g *data.GraphProd, start *data.Node, target *data.Node) (int64, []*data.Node, error) {
+func CalcDijkstra(g *data.GraphProd, start *data.Node, target *data.Node) (*data.NodeRoute, error) {
 
 	pq := make(data.PriorityQueue, 0, 10)
 
@@ -46,8 +55,6 @@ func CalcDijkstra(g *data.GraphProd, start *data.Node, target *data.Node) (int64
 		edgeEnd := g.Offset[currentEdge.End+1]
 		for i := edgeBegin; i < edgeEnd; i++ {
 
-			logrus.Debug(i)
-
 			newItem := data.Item{Value: g.Edges[i], Priority: item.Priority + g.Edges[i].Cost}
 
 			// skip if cost is bigger then what we already know
@@ -63,7 +70,7 @@ func CalcDijkstra(g *data.GraphProd, start *data.Node, target *data.Node) (int64
 	edge = prevs[target.ID]
 	minCost := edge.Cost
 	if edge.Cost == math.MaxInt64 {
-		return math.MaxInt64, nil, errors.New("no way found")
+		return nil, errors.New("no way found")
 	}
 	optWay = append(optWay, &g.Nodes[edge.End])
 
@@ -73,5 +80,7 @@ func CalcDijkstra(g *data.GraphProd, start *data.Node, target *data.Node) (int64
 		edge = prevs[edge.Start]
 	}
 
-	return minCost, optWay, nil
+	route := data.NodeRoute{Route: optWay, TotalCost: minCost}
+
+	return &route, nil
 }
