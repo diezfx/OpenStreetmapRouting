@@ -101,6 +101,15 @@ func sortEdges(edges []Edge) {
 
 }
 
+//Init calculates the offsetlist and creates the grid for the given graph
+func (g *GraphProd) Init(conf *config.Config) {
+	g.CalcOffsetList()
+
+	grid := Grid{}
+	grid.InitGrid(g, conf)
+
+}
+
 //CalcOffsetList calculates the offset list
 func (g *GraphProd) CalcOffsetList() {
 
