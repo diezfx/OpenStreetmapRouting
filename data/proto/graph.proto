@@ -4,7 +4,7 @@ package data;
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
 message Edge {
-    int64 ID =1;   
+	int64 ID =1; 
 	int64 start=2; 
 	int64 end  =3; 
 	double speed =4; // in m/s
@@ -12,9 +12,10 @@ message Edge {
 }
 
 message Node {
-    int64 ID =1;
-	double lat  =2;
-	double lon  =3;
+	int64 ID =1;
+	int64 ID_Osm=2;
+	double lat  =3;
+	double lon  =4;
 }
 
 message Graph{

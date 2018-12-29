@@ -9,13 +9,16 @@ osmFilename: "res/baden-wuerttemberg-latest.osm.pbf"
 # 1 parse the osm files and write to file for reuse
 # 0 use existing parsed data
 #### 2 TODO use graph directly after parsing without writing to file
-osmParse: 1
+osmParse: 0
 
-#json|protobuf are valid  (json not recommended)
+#json|protobuf  (json not recommended)
 outputType: "protobuf"
 
-outputFilename: "res/graph.bin"
+outputFilename: "../res/graph_test.bin"
 
 
 # 1 Info| 2 Warning | 3 Error
 logLevel: 0
+
+gridXSize: 10
+gridYSize: 10

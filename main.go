@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"log"
 	"test/config"
 	"test/data"
 	"test/parsing"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -16,30 +16,36 @@ func main() {
 	start := time.Now()
 	config := config.LoadConfig("res/config.yaml")
 
-	if config.OsmParse == 1 {
-		parsing.Parse()
-	}
+	initLogger()
 
-	// load and init graph
-	dat, err := ioutil.ReadFile(config.OutputFilename)
+	graphData := parsing.ParseOrLoadGraph(config)
 
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	graphData := data.Graph{}
-
-	err = graphData.Unmarshal(dat)
-
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
+	//add the offset list that is needed for dijkstra
 	graph := data.GraphProd{Nodes: graphData.Nodes, Edges: graphData.Edges}
-
 	graph.CalcOffsetList()
 
-	fmt.Println("Ready!!")
+	log.Info("Ready!!")
 	elapsed := time.Since(start)
-	log.Printf("loading took %s", elapsed)
+	log.Infof("loading took %s", elapsed)
+}
+
+func initLogger() {
+	conf := config.GetConfig()
+
+	var logLevel log.Level
+	switch conf.LogLevel {
+	case 1:
+		logLevel = log.InfoLevel
+	case 2:
+		logLevel = log.WarnLevel
+	case 3:
+		logLevel = log.ErrorLevel
+	default:
+		logLevel = log.TraceLevel
+	}
+
+	log.SetReportCaller(true)
+
+	log.SetLevel(logLevel)
+
 }

@@ -1,8 +1,12 @@
 package data
 
 import (
+	"encoding/json"
+	"io/ioutil"
+	"log"
 	"sort"
 	"sync"
+	"test/config"
 
 	"github.com/umahmood/haversine"
 )
@@ -23,29 +27,56 @@ type GraphProd struct {
 	Nodes  []Node
 	Edges  []Edge
 	Offset []int
+	Grid   Grid
 }
 
-//Convert update the ids in the edges and calculate the cost
+//UpdateIDs update the ids in the edges and calculate the cost
 // sort list after edges
 // open channel and send them while still creating the raw node graph cooler
-func (graphR *GraphRaw) Convert() *Graph {
+func (g *GraphRaw) UpdateIDs() *Graph {
 
-	graph := Graph{Edges: graphR.Edges, Nodes: graphR.Nodes}
+	graph := Graph{Edges: g.Edges, Nodes: g.Nodes}
 
-	for i, edge := range graphR.Edges {
-		edge.Start = int64(graphR.NodeIDs[edge.Start])
-		edge.End = int64(graphR.NodeIDs[edge.End])
-		edge.Cost = calcEdgeCost(&graphR.Nodes[edge.Start], &graphR.Nodes[edge.End], &edge)
+	for i, edge := range g.Edges {
+		edge.Start = int64(g.NodeIDs[edge.Start])
+		edge.End = int64(g.NodeIDs[edge.End])
+		edge.Cost = calcEdgeCost(&g.Nodes[edge.Start], &g.Nodes[edge.End], &edge)
 
-		graphR.Edges[i] = edge
+		g.Edges[i] = edge
 	}
 
-	sortEdges(graph.Edges)
-	//graph.CalcOffsetList()
+	sortEdges(g.Edges)
 	return &graph
 
 }
 
+//WriteToFile write the graph to a file depending on the config json|protobuf
+func (g *Graph) WriteToFile(config *config.Config) {
+
+	var encodedGraph []byte
+
+	if config.OutputType == "json" {
+		jsonGraph, err := json.Marshal(g)
+		encodedGraph = jsonGraph
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+
+	} else {
+		protoGraph, err := g.Marshal()
+		encodedGraph = protoGraph
+		if err != nil {
+			log.Fatal(err)
+		}
+
+	}
+
+	ioutil.WriteFile(config.OutputFilename, encodedGraph, 0644)
+
+}
+
+//AddEdge adds an edge to the graph
 func (g *GraphRaw) AddEdge(e Edge) {
 	g.EdgeMutex.Lock()
 	g.Edges = append(g.Edges, e)
@@ -70,6 +101,7 @@ func sortEdges(edges []Edge) {
 
 }
 
+//CalcOffsetList calculates the offset list
 func (g *GraphProd) CalcOffsetList() {
 
 	currNodeID := 0

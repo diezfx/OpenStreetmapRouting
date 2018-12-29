@@ -9,6 +9,7 @@ import (
 
 var config *Config
 
+//Config all configurable options for the parser and routingplaner
 type Config struct {
 	OsmLocation string `yaml:"osmLocation"`
 	OsmFilename string `yaml:"osmFilename"`
@@ -16,10 +17,16 @@ type Config struct {
 
 	OutputType     string `yaml:"outputType"`
 	OutputFilename string `yaml:"outputFilename"`
+
+	LogLevel int `yaml:"logLevel"`
+
+	GridXSize int `yaml:"gridXSize"`
+	GridYSize int `yaml:"gridYSize"`
 }
 
+//LoadConfig .
 func LoadConfig(filename string) *Config {
-	file_data, err := ioutil.ReadFile(filename)
+	fileData, err := ioutil.ReadFile(filename)
 	if err != nil {
 
 		log.Fatal(err)
@@ -27,7 +34,7 @@ func LoadConfig(filename string) *Config {
 
 	config = &Config{}
 
-	err2 := yaml.Unmarshal(file_data, config)
+	err2 := yaml.Unmarshal(fileData, config)
 	if err != nil {
 
 		log.Fatal(err2)
@@ -37,6 +44,7 @@ func LoadConfig(filename string) *Config {
 	return config
 }
 
+//GetConfig .
 func GetConfig() *Config {
 	if config == nil {
 		log.Fatal("Load config first.")
