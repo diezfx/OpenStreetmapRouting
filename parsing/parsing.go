@@ -4,8 +4,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"test/config"
-	"test/data"
+	"routingplaner/config"
+	"routingplaner/data"
 	"time"
 
 	log "github.com/sirupsen/logrus"

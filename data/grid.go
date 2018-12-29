@@ -2,7 +2,7 @@ package data
 
 import (
 	"math"
-	"test/config"
+	"routingplaner/config"
 
 	"github.com/sirupsen/logrus"
 )

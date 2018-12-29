@@ -2,9 +2,9 @@ package parsing
 
 import (
 	"fmt"
+	"routingplaner/data"
 	"strconv"
 	"strings"
-	"test/data"
 
 	"github.com/thomersch/gosmparse"
 )

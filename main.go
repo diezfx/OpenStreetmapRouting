@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"test/config"
-	"test/data"
-	"test/parsing"
+	"routingplaner/config"
+	"routingplaner/data"
+	"routingplaner/parsing"
 	"time"
 
 	log "github.com/sirupsen/logrus"
