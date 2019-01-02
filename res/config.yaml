@@ -19,3 +19,6 @@ outputFilename: "res/graph.bin"
 
 # 1 Info| 2 Warning | 3 Error
 logLevel: 0
+
+gridXSize: 100
+gridYSize: 100

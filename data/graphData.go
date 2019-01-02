@@ -91,7 +91,7 @@ func calcEdgeCost(start, end *Node, e *Edge) int64 {
 
 	_, dist := haversine.Distance(haversine.Coord{Lat: start.Lat, Lon: start.Lon}, haversine.Coord{Lat: end.Lat, Lon: end.Lon})
 
-	return int64(dist / e.Speed)
+	return int64((dist * 1000 / (e.Speed / 10000)))
 }
 
 func sortEdges(edges []Edge) {

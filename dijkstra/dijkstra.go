@@ -5,12 +5,15 @@ import (
 	"container/heap"
 	"errors"
 	"math"
+
+	"github.com/sirupsen/logrus"
 )
 
 func GetRoute(start data.Coordinate, end data.Coordinate) (*data.NodeRoute, error) {
 
 	graph := data.GetGraphProd()
 
+	logrus.Debug(start, end)
 	startNode := graph.Grid.FindNextNode(start.Lat, start.Lon)
 	endNode := graph.Grid.FindNextNode(end.Lat, end.Lon)
 
@@ -23,6 +26,11 @@ func GetRoute(start data.Coordinate, end data.Coordinate) (*data.NodeRoute, erro
 func CalcDijkstra(g *data.GraphProd, start *data.Node, target *data.Node) (*data.NodeRoute, error) {
 
 	pq := make(data.PriorityQueue, 0, 10)
+
+	if start.ID == target.ID {
+		route := &data.NodeRoute{Route: make([]*data.Node, 0), TotalCost: 0}
+		return route, nil
+	}
 
 	//sets the edge that led to thid node
 	prevs := make([]data.Edge, len(g.Nodes))
@@ -39,13 +47,19 @@ func CalcDijkstra(g *data.GraphProd, start *data.Node, target *data.Node) (*data
 	edge := data.Edge{ID: -1, End: start.ID, Start: start.ID, Cost: 0}
 	heap.Push(&pq, &data.Item{Value: edge, Priority: 0})
 
+	test := 0
 	for pq.Len() > 0 {
+
+		test++
+
 		item := heap.Pop(&pq).(*data.Item)
 
 		currentEdge := item.Value.(data.Edge)
 
 		if item.Priority >= prevs[currentEdge.End].Cost {
+
 			continue
+
 		}
 
 		currentEdge.Cost = item.Priority
@@ -53,13 +67,19 @@ func CalcDijkstra(g *data.GraphProd, start *data.Node, target *data.Node) (*data
 		// look at all reachable nodes
 		edgeBegin := g.Offset[currentEdge.End]
 		edgeEnd := g.Offset[currentEdge.End+1]
+
 		for i := edgeBegin; i < edgeEnd; i++ {
+
+			if test%1000000 == 0 {
+				logrus.Debug(i)
+			}
 
 			newItem := data.Item{Value: g.Edges[i], Priority: item.Priority + g.Edges[i].Cost}
 
 			// skip if cost is bigger then what we already know
 			if newItem.Priority < prevs[g.Edges[i].End].Cost {
 				heap.Push(&pq, &newItem)
+
 			}
 		}
 	}
@@ -72,6 +92,7 @@ func CalcDijkstra(g *data.GraphProd, start *data.Node, target *data.Node) (*data
 	if edge.Cost == math.MaxInt64 {
 		return nil, errors.New("no way found")
 	}
+
 	optWay = append(optWay, &g.Nodes[edge.End])
 
 	for edge.End != start.ID {

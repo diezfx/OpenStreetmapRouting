@@ -175,6 +175,14 @@ func parseSpeed(way gosmparse.Way) float64 {
 		}
 
 	}
+
+	//just assume
+	//todo better assumption
+	if speedKmh <= 0 {
+
+		speedKmh = 50
+	}
+
 	return speedKmh / 3.6
 }
 
