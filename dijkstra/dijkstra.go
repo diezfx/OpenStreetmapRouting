@@ -5,6 +5,7 @@ import (
 	"container/heap"
 	"errors"
 	"math"
+	"time"
 
 	"github.com/sirupsen/logrus"
 )
@@ -14,10 +15,25 @@ func GetRoute(start data.Coordinate, end data.Coordinate) (*data.NodeRoute, erro
 	graph := data.GetGraphProd()
 
 	logrus.Debug(start, end)
+
+	logrus.Infof("Find nodes close to Node")
+	startTime := time.Now()
 	startNode := graph.Grid.FindNextNode(start.Lat, start.Lon)
 	endNode := graph.Grid.FindNextNode(end.Lat, end.Lon)
 
-	return CalcDijkstra(graph, startNode, endNode)
+	gridTime := time.Since(startTime)
+
+	logrus.Infof("Dijkstra started")
+
+	result, err := CalcDijkstra(graph, startNode, endNode)
+	dijkstraTime := time.Since(startTime) - gridTime
+	endTime := time.Since(startTime)
+	logrus.WithFields(logrus.Fields{
+		"Time for Gridsearch": gridTime,
+		"Time for dijkstra":   dijkstraTime,
+		"Total time":          endTime}).Info("Dijkstra ended")
+
+	return result, err
 
 }
 
@@ -47,10 +63,7 @@ func CalcDijkstra(g *data.GraphProd, start *data.Node, target *data.Node) (*data
 	edge := data.Edge{ID: -1, End: start.ID, Start: start.ID, Cost: 0}
 	heap.Push(&pq, &data.Item{Value: edge, Priority: 0})
 
-	test := 0
 	for pq.Len() > 0 {
-
-		test++
 
 		item := heap.Pop(&pq).(*data.Item)
 
@@ -69,10 +82,6 @@ func CalcDijkstra(g *data.GraphProd, start *data.Node, target *data.Node) (*data
 		edgeEnd := g.Offset[currentEdge.End+1]
 
 		for i := edgeBegin; i < edgeEnd; i++ {
-
-			if test%1000000 == 0 {
-				logrus.Debug(i)
-			}
 
 			newItem := data.Item{Value: g.Edges[i], Priority: item.Priority + g.Edges[i].Cost}
 
