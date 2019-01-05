@@ -1,17 +1,17 @@
 package data_test
 
 import (
+	"OpenStreetmapRouting/config"
+	"OpenStreetmapRouting/data"
+	"OpenStreetmapRouting/parsing"
 	"os"
-	"test/config"
-	"test/data"
-	"test/parsing"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/sirupsen/logrus"
 )
 
-var nodes = []data.Node{{ID: 0, Lat: 1.0, Lon: 1.0}, {ID: 1, Lat: 10.0, Lon: 1.0}, {ID: 2, Lat: 1.0, Lon: 10.0}, {ID: 3, Lat: 3.0, Lon: 3.0}, {ID: 4, Lat: 5.0, Lon: 5.0}}
+var nodes = []data.Node{{ID: 0, Lat: 1.0, Lon: 1.0}, {ID: 1, Lat: 10.0, Lon: 1.0}, {ID: 2, Lat: 1.0, Lon: 10.0}, {ID: 3, Lat: 3.0, Lon: 3.0}, {ID: 4, Lat: 5.0, Lon: 5.0}, {ID: 5, Lat: -1.0, Lon: -1.0}}
 var edges = []data.Edge{{Start: 0, End: 1, Cost: 9},
 	{Start: 0, End: 2, Cost: 8},
 	{Start: 0, End: 4, Cost: 7},

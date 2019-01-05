@@ -24,7 +24,7 @@ func (nr *NodeRoute) ConvertToJson() *GetRoute {
 
 	for i := len(nr.Route) - 1; i >= 0; i-- {
 
-		getRoute.Route.Coordinates = append(getRoute.Route.Coordinates, []float64{nr.Route[i].Lat, nr.Route[i].Lon})
+		getRoute.Route.Coordinates = append(getRoute.Route.Coordinates, []float64{nr.Route[i].Lon, nr.Route[i].Lat})
 
 	}
 

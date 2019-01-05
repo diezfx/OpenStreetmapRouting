@@ -3,8 +3,6 @@ package data
 import (
 	"OpenStreetmapRouting/config"
 	"math"
-
-	"github.com/sirupsen/logrus"
 )
 
 //Grid contains a grid that helps finding the next node to a Lat long input
@@ -34,7 +32,7 @@ func (g *Grid) InitGrid(graph *GraphProd, config *config.Config) {
 		x, y := g.CalculateGridPos(node.Lat, node.Lon)
 		if list, ok := g.Grid[x*g.LatSize+y]; ok == true {
 
-			list = append(list, &graph.Nodes[i])
+			g.Grid[x*g.LatSize+y] = append(list, &graph.Nodes[i])
 
 		} else {
 			list := make([]*Node, 0)
@@ -110,6 +108,7 @@ func (g *Grid) FindNextNode(lat, long float64) *Node {
 
 	candidates := make([]*Node, 0)
 	if list, ok := g.Grid[x*g.LatSize+y]; ok == true {
+
 		candidates = append(candidates, list...)
 	}
 
@@ -149,7 +148,6 @@ func (g *Grid) FindNextNode(lat, long float64) *Node {
 		//else add more cells
 		if dist%2 == 0 {
 			if len(candidates) > 0 {
-				logrus.Debug(candidates)
 				return findClosestNode(candidates, lat, long)
 
 			}
