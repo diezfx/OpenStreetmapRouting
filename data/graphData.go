@@ -34,8 +34,6 @@ type GraphProd struct {
 	Grid   Grid
 }
 
-<<<<<<< HEAD
-=======
 type MetaInfo struct {
 	RoadTypes  map[string]int
 	NodesTotal int
@@ -53,7 +51,6 @@ type MetaInfoGet struct {
 	EdgesTotal int        `json:"edgesTotal"`
 }
 
->>>>>>> 4125ba9... added metainfo
 //UpdateIDs update the ids in the edges and calculate the cost
 // sort list after edges
 // open channel and send them while still creating the raw node graph cooler
@@ -74,8 +71,6 @@ func (g *GraphRaw) UpdateIDs() *Graph {
 
 }
 
-<<<<<<< HEAD
-=======
 func (i *MetaInfo) WriteToFile(config *config.Config) {
 
 	infoJson, err := json.Marshal(i)
@@ -106,7 +101,6 @@ func (i *MetaInfo) ConverToGetObject() *MetaInfoGet {
 
 }
 
->>>>>>> 4125ba9... added metainfo
 //WriteToFile write the graph to a file depending on the config json|protobuf
 func (g *Graph) WriteToFile(config *config.Config) {
 
