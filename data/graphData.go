@@ -13,6 +13,7 @@ import (
 
 // instance that is usable by dijkstra
 var graphProd *GraphProd
+var info *MetaInfo
 
 // GraphRaw contains the node,edge lists and additionaly a map for the old/new id mapping
 type GraphRaw struct {
@@ -33,6 +34,26 @@ type GraphProd struct {
 	Grid   Grid
 }
 
+<<<<<<< HEAD
+=======
+type MetaInfo struct {
+	RoadTypes  map[string]int
+	NodesTotal int
+	EdgesTotal int
+}
+
+type RoadType struct {
+	Type  string `json:"type"`
+	Count int    `json:"count"`
+}
+
+type MetaInfoGet struct {
+	RoadTypes  []RoadType `json:"roadTypes"`
+	NodesTotal int        `json:"nodesTotal"`
+	EdgesTotal int        `json:"edgesTotal"`
+}
+
+>>>>>>> 4125ba9... added metainfo
 //UpdateIDs update the ids in the edges and calculate the cost
 // sort list after edges
 // open channel and send them while still creating the raw node graph cooler
@@ -53,6 +74,39 @@ func (g *GraphRaw) UpdateIDs() *Graph {
 
 }
 
+<<<<<<< HEAD
+=======
+func (i *MetaInfo) WriteToFile(config *config.Config) {
+
+	infoJson, err := json.Marshal(i)
+
+	info = i
+
+	if err != nil {
+		logrus.Fatal(err)
+		return
+	}
+
+	ioutil.WriteFile(config.InfoFilename, infoJson, 0644)
+
+}
+
+//conversion is needed for vue.js table
+func (i *MetaInfo) ConverToGetObject() *MetaInfoGet {
+
+	infoJsonGet := MetaInfoGet{RoadTypes: make([]RoadType, 0), NodesTotal: i.NodesTotal, EdgesTotal: i.EdgesTotal}
+
+	for k, v := range i.RoadTypes {
+
+		roadType := RoadType{Type: k, Count: v}
+		infoJsonGet.RoadTypes = append(infoJsonGet.RoadTypes, roadType)
+	}
+
+	return &infoJsonGet
+
+}
+
+>>>>>>> 4125ba9... added metainfo
 //WriteToFile write the graph to a file depending on the config json|protobuf
 func (g *Graph) WriteToFile(config *config.Config) {
 
@@ -152,10 +206,17 @@ func InitGraphProd(graphData *Graph, conf *config.Config) *GraphProd {
 }
 
 func GetGraphProd() *GraphProd {
-	if graphProd != nil {
-		return graphProd
-	} else {
+	if graphProd == nil {
 		logrus.Fatal("Graph is not initialized")
 	}
-	return nil
+
+	return graphProd
+}
+
+func GetGraphInfo() *MetaInfo {
+	if info == nil {
+		logrus.Errorf("Info not initialized")
+
+	}
+	return info
 }
