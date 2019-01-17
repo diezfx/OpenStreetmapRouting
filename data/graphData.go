@@ -21,9 +21,9 @@ type GraphRaw struct {
 	NodeIDMutex sync.Mutex
 
 	EdgeMutex sync.Mutex
-
-	Nodes []Node
-	Edges []Edge
+	Info      MetaInfo
+	Nodes     []Node
+	Edges     []Edge
 }
 
 // GraphProd Graph with the offset list to use in "production" with dijkstra

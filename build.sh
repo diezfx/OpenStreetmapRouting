@@ -1,8 +1,7 @@
 #!/bin/bash
 case "$1" in
     parse)
-        echo "parse"
-        go run parse_convert.go
+
         ;;
     run)
         echo "run"

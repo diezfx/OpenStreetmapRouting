@@ -22,6 +22,8 @@ type Config struct {
 
 	GridXSize int `yaml:"gridXSize"`
 	GridYSize int `yaml:"gridYSize"`
+
+	InfoFilename string `yaml:"infoFilename"`
 }
 
 //LoadConfig .

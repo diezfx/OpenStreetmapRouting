@@ -36,7 +36,7 @@ func loadDec() *gosmparse.Decoder {
 }
 
 //Parse parses the graph to our graph format
-func parse() *data.Graph {
+func parse() (*data.Graph, *data.MetaInfo) {
 	log.Infof("Beginne")
 	start := time.Now()
 
@@ -79,19 +79,25 @@ func parse() *data.Graph {
 	// transform to efficient graph
 	graph := DataHandler2.Graph.UpdateIDs()
 
+	info := &DataHandler2.Graph.Info
+	info.EdgesTotal = len(DataHandler2.Graph.Edges)
+	info.NodesTotal = len(DataHandler2.Graph.Nodes)
+
 	//fmt.Println(len(graph.Offset))
 
 	log.Infof("parsing took %s", time.Since(start))
-	return graph
+	return graph, info
 
 }
 
 func ParseOrLoadGraph(config *config.Config) *data.Graph {
 
 	var graphData *data.Graph
+	var info *data.MetaInfo
 	if config.OsmParse == 1 {
-		graphData = parse()
+		graphData, info = parse()
 		graphData.WriteToFile(config)
+		info.WriteToFile(config)
 	} else {
 		// load and init graph
 		dat, err := ioutil.ReadFile(config.OutputFilename)

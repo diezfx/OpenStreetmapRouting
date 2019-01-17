@@ -27,8 +27,9 @@ func (d *DataHandlerStep1) InitGraph() {
 
 	nodeList := make([]data.Node, 0, 4400000)
 	edgeList := make([]data.Edge, 0, 7500000)
+	info := data.MetaInfo{RoadTypes: make(map[string]int, 0)}
 
-	d.Graph = &data.GraphRaw{NodeIDs: make(map[int64]int64, 5000000), Nodes: nodeList, Edges: edgeList}
+	d.Graph = &data.GraphRaw{NodeIDs: make(map[int64]int64, 0), Nodes: nodeList, Edges: edgeList, Info: info}
 
 }
 
@@ -59,9 +60,11 @@ func (d *DataHandlerStep1) ReadWay(w gosmparse.Way) {
 	// only take streets
 	if hTag, ok := w.Tags["highway"]; ok == true && !contains(unvalidRoadTypes, hTag) {
 
+		d.Graph.NodeIDMutex.Lock()
+		d.Graph.Info.RoadTypes[hTag]++
 		for _, ID := range w.NodeIDs {
 			// todo checken double count
-			d.Graph.NodeIDMutex.Lock()
+
 			if _, ok := d.Graph.NodeIDs[ID]; ok == false {
 
 				// placeholder value that no new val is set yet
@@ -69,8 +72,9 @@ func (d *DataHandlerStep1) ReadWay(w gosmparse.Way) {
 				d.Graph.NodeIDs[ID] = -1
 
 			}
-			d.Graph.NodeIDMutex.Unlock()
+
 		}
+		d.Graph.NodeIDMutex.Unlock()
 
 		speed := parseSpeed(w)
 
