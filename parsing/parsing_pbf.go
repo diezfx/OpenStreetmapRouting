@@ -14,13 +14,15 @@ import (
 type DataHandlerStep1 struct {
 	//Graph data.Graph
 
-	Graph *data.GraphRaw
+	Graph          *data.GraphRaw
+	GasStationList *data.GasStations
 }
 
 type DataHandlerStep2 struct {
 	//Graph data.Graph
 
-	Graph *data.GraphRaw
+	Graph          *data.GraphRaw
+	GasStationList *data.GasStations
 }
 
 func (d *DataHandlerStep1) InitGraph() {
@@ -29,11 +31,16 @@ func (d *DataHandlerStep1) InitGraph() {
 	edgeList := make([]data.Edge, 0, 7500000)
 	info := data.MetaInfo{RoadTypes: make(map[string]int, 0)}
 
+	fuelList := data.GasStations{Stations: make(map[int64]*data.Node, 0)}
+
 	d.Graph = &data.GraphRaw{NodeIDs: make(map[int64]int64, 0), Nodes: nodeList, Edges: edgeList, Info: info}
+	d.GasStationList = &fuelList
 
 }
 
 var unvalidRoadTypes = []string{"footway", "bridleway", "steps", "path", "cycleway", "construction", "track"}
+
+var gasStations_Charging = []string{"charging_station", "fuel"}
 
 func (d *DataHandlerStep1) ReadNode(n gosmparse.Node) {}
 
@@ -53,6 +60,27 @@ func (d *DataHandlerStep2) ReadNode(n gosmparse.Node) {
 
 		}
 
+	}
+
+	// either is already there from way parsing; just add infos or create anew
+	if node, ok := d.GasStationList.Stations[n.ID]; ok == true {
+
+		node.Lat = n.Lat
+		node.Lon = n.Lon
+
+	} else if hTag, _ := n.Tags["amenity"]; contains(gasStations_Charging, hTag) {
+
+		var fuelType data.NodeType
+
+		if hTag == "charging_station" {
+			fuelType = data.NodeType_ChargingStation
+		} else {
+			fuelType = data.NodeType_GasStation
+
+		}
+
+		node := &data.Node{ID: n.ID, ID_Osm: n.ID, Lat: n.Lat, Lon: n.Lon, Type: fuelType}
+		d.GasStationList.Stations[n.ID] = node
 	}
 	d.Graph.NodeIDMutex.Unlock()
 }
@@ -76,10 +104,10 @@ func (d *DataHandlerStep1) ReadWay(w gosmparse.Way) {
 		}
 		d.Graph.NodeIDMutex.Unlock()
 
-		speed := parseSpeed(w)
+		//speed := parseSpeed(w)
 
 		for i, ID := range w.NodeIDs[:len(w.NodeIDs)-1] {
-			edge := data.Edge{ID: w.ID, Start: ID, End: w.NodeIDs[i+1], Speed: speed}
+			edge := data.Edge{ID: w.ID, Start: ID, End: w.NodeIDs[i+1]}
 			d.Graph.AddEdge(edge)
 
 		}
@@ -87,9 +115,32 @@ func (d *DataHandlerStep1) ReadWay(w gosmparse.Way) {
 		// if it's not oneway create edges the other way round as well
 		if onewayTag, _ := w.Tags["oneway"]; onewayTag != "yes" {
 			for i := len(w.NodeIDs) - 1; i > 1; i-- {
-				edge := data.Edge{ID: w.ID, Start: w.NodeIDs[i], End: w.NodeIDs[i-1], Speed: speed}
+				edge := data.Edge{ID: w.ID, Start: w.NodeIDs[i], End: w.NodeIDs[i-1]}
 				d.Graph.AddEdge(edge)
 			}
+		}
+
+	}
+
+	if hTag, _ := w.Tags["amenity"]; contains(gasStations_Charging, hTag) {
+
+		//just add one of the nodes
+		// todo find solution
+		for _, ID := range w.NodeIDs[:len(w.NodeIDs)-1] {
+			//ID is non unique Id(from way), ID_osm is unique id
+
+			var fuelType data.NodeType
+
+			if hTag == "charging_station" {
+				fuelType = data.NodeType_ChargingStation
+			} else {
+				fuelType = data.NodeType_GasStation
+
+			}
+
+			node := &data.Node{ID: w.ID, ID_Osm: ID, Type: fuelType}
+			d.GasStationList.Stations[ID] = node
+
 		}
 
 	}

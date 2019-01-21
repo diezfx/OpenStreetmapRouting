@@ -14,6 +14,7 @@ func Start() {
 	r.HandleFunc("/", CorsHeader(controller.HomeHandler))
 	r.HandleFunc("/v1/route", CorsHeader(controller.RouteHandler))
 	r.HandleFunc("/v1/info", CorsHeader(controller.InfoHandler))
+	r.HandleFunc("/v1/stations", CorsHeader(controller.FuelStationHandler))
 
 	logrus.Infof("Server startet at localhost:8000 ")
 	http.ListenAndServe("localhost:8000", r)

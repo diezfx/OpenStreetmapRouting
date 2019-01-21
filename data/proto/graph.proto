@@ -16,6 +16,7 @@ message Node {
 	int64 ID_Osm=2;
 	double lat  =3;
 	double lon  =4;
+	NodeType type =5;
 }
 
 message Graph{
@@ -24,6 +25,19 @@ message Graph{
     repeated Edge edges =2 [(gogoproto.nullable) = false];
 
 }
+
+message GasStations{
+	map<int64, Node> stations = 1;
+}
+
+
+
+enum NodeType {
+    Road = 0;
+	GasStation = 1;
+	ChargingStation=2;
+
+  }
 
 
 

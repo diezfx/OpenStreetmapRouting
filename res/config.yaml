@@ -25,3 +25,4 @@ gridYSize: 100
 
 
 infoFilename: "res/metaInfo.json"
+fuelStationsFilename: "res/fuelStations.json"

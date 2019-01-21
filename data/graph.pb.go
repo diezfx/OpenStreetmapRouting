@@ -3,14 +3,14 @@
 
 package data
 
-import proto "github.com/gogo/protobuf/proto"
-import fmt "fmt"
-import math "math"
-import _ "github.com/gogo/protobuf/gogoproto"
-
-import encoding_binary "encoding/binary"
-
-import io "io"
+import (
+	encoding_binary "encoding/binary"
+	fmt "fmt"
+	_ "github.com/gogo/protobuf/gogoproto"
+	proto "github.com/gogo/protobuf/proto"
+	io "io"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -23,8 +23,36 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
+type NodeType int32
+
+const (
+	NodeType_Road            NodeType = 0
+	NodeType_GasStation      NodeType = 1
+	NodeType_ChargingStation NodeType = 2
+)
+
+var NodeType_name = map[int32]string{
+	0: "Road",
+	1: "GasStation",
+	2: "ChargingStation",
+}
+
+var NodeType_value = map[string]int32{
+	"Road":            0,
+	"GasStation":      1,
+	"ChargingStation": 2,
+}
+
+func (x NodeType) String() string {
+	return proto.EnumName(NodeType_name, int32(x))
+}
+
+func (NodeType) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_3e4c656902fc0e6b, []int{0}
+}
+
 type Edge struct {
-	ID    int64   `protobuf:"varint,1,opt,name=ID,json=iD,proto3" json:"ID,omitempty"`
+	ID    int64   `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty"`
 	Start int64   `protobuf:"varint,2,opt,name=start,proto3" json:"start,omitempty"`
 	End   int64   `protobuf:"varint,3,opt,name=end,proto3" json:"end,omitempty"`
 	Speed float64 `protobuf:"fixed64,4,opt,name=speed,proto3" json:"speed,omitempty"`
@@ -35,7 +63,7 @@ func (m *Edge) Reset()         { *m = Edge{} }
 func (m *Edge) String() string { return proto.CompactTextString(m) }
 func (*Edge) ProtoMessage()    {}
 func (*Edge) Descriptor() ([]byte, []int) {
-	return fileDescriptor_graph_ee08ab694546f511, []int{0}
+	return fileDescriptor_3e4c656902fc0e6b, []int{0}
 }
 func (m *Edge) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -52,8 +80,8 @@ func (m *Edge) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (dst *Edge) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Edge.Merge(dst, src)
+func (m *Edge) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Edge.Merge(m, src)
 }
 func (m *Edge) XXX_Size() int {
 	return m.Size()
@@ -100,17 +128,18 @@ func (m *Edge) GetCost() int64 {
 }
 
 type Node struct {
-	ID     int64   `protobuf:"varint,1,opt,name=ID,json=iD,proto3" json:"ID,omitempty"`
-	ID_Osm int64   `protobuf:"varint,2,opt,name=ID_Osm,json=iDOsm,proto3" json:"ID_Osm,omitempty"`
-	Lat    float64 `protobuf:"fixed64,3,opt,name=lat,proto3" json:"lat,omitempty"`
-	Lon    float64 `protobuf:"fixed64,4,opt,name=lon,proto3" json:"lon,omitempty"`
+	ID     int64    `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	ID_Osm int64    `protobuf:"varint,2,opt,name=ID_Osm,json=IDOsm,proto3" json:"ID_Osm,omitempty"`
+	Lat    float64  `protobuf:"fixed64,3,opt,name=lat,proto3" json:"lat,omitempty"`
+	Lon    float64  `protobuf:"fixed64,4,opt,name=lon,proto3" json:"lon,omitempty"`
+	Type   NodeType `protobuf:"varint,5,opt,name=type,proto3,enum=data.NodeType" json:"type,omitempty"`
 }
 
 func (m *Node) Reset()         { *m = Node{} }
 func (m *Node) String() string { return proto.CompactTextString(m) }
 func (*Node) ProtoMessage()    {}
 func (*Node) Descriptor() ([]byte, []int) {
-	return fileDescriptor_graph_ee08ab694546f511, []int{1}
+	return fileDescriptor_3e4c656902fc0e6b, []int{1}
 }
 func (m *Node) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -127,8 +156,8 @@ func (m *Node) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (dst *Node) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Node.Merge(dst, src)
+func (m *Node) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Node.Merge(m, src)
 }
 func (m *Node) XXX_Size() int {
 	return m.Size()
@@ -167,16 +196,23 @@ func (m *Node) GetLon() float64 {
 	return 0
 }
 
+func (m *Node) GetType() NodeType {
+	if m != nil {
+		return m.Type
+	}
+	return NodeType_Road
+}
+
 type Graph struct {
-	Nodes []Node `protobuf:"bytes,1,rep,name=nodes" json:"nodes"`
-	Edges []Edge `protobuf:"bytes,2,rep,name=edges" json:"edges"`
+	Nodes []Node `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes"`
+	Edges []Edge `protobuf:"bytes,2,rep,name=edges,proto3" json:"edges"`
 }
 
 func (m *Graph) Reset()         { *m = Graph{} }
 func (m *Graph) String() string { return proto.CompactTextString(m) }
 func (*Graph) ProtoMessage()    {}
 func (*Graph) Descriptor() ([]byte, []int) {
-	return fileDescriptor_graph_ee08ab694546f511, []int{2}
+	return fileDescriptor_3e4c656902fc0e6b, []int{2}
 }
 func (m *Graph) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -193,8 +229,8 @@ func (m *Graph) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (dst *Graph) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Graph.Merge(dst, src)
+func (m *Graph) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Graph.Merge(m, src)
 }
 func (m *Graph) XXX_Size() int {
 	return m.Size()
@@ -219,11 +255,91 @@ func (m *Graph) GetEdges() []Edge {
 	return nil
 }
 
+type GasStations struct {
+	Stations map[int64]*Node `protobuf:"bytes,1,rep,name=stations,proto3" json:"stations,omitempty" protobuf_key:"varint,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+}
+
+func (m *GasStations) Reset()         { *m = GasStations{} }
+func (m *GasStations) String() string { return proto.CompactTextString(m) }
+func (*GasStations) ProtoMessage()    {}
+func (*GasStations) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3e4c656902fc0e6b, []int{3}
+}
+func (m *GasStations) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GasStations) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GasStations.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalTo(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GasStations) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GasStations.Merge(m, src)
+}
+func (m *GasStations) XXX_Size() int {
+	return m.Size()
+}
+func (m *GasStations) XXX_DiscardUnknown() {
+	xxx_messageInfo_GasStations.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GasStations proto.InternalMessageInfo
+
+func (m *GasStations) GetStations() map[int64]*Node {
+	if m != nil {
+		return m.Stations
+	}
+	return nil
+}
+
 func init() {
+	proto.RegisterEnum("data.NodeType", NodeType_name, NodeType_value)
 	proto.RegisterType((*Edge)(nil), "data.Edge")
 	proto.RegisterType((*Node)(nil), "data.Node")
 	proto.RegisterType((*Graph)(nil), "data.Graph")
+	proto.RegisterType((*GasStations)(nil), "data.GasStations")
+	proto.RegisterMapType((map[int64]*Node)(nil), "data.GasStations.StationsEntry")
 }
+
+func init() { proto.RegisterFile("graph.proto", fileDescriptor_3e4c656902fc0e6b) }
+
+var fileDescriptor_3e4c656902fc0e6b = []byte{
+	// 403 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x64, 0x92, 0x4f, 0x6b, 0xdb, 0x30,
+	0x18, 0xc6, 0x2d, 0x47, 0x2e, 0xe1, 0x0d, 0xcb, 0x82, 0xb6, 0x81, 0xe8, 0xc1, 0x0d, 0x3e, 0x8c,
+	0x30, 0x98, 0x0b, 0xdd, 0x65, 0x7f, 0x6e, 0x5d, 0x4a, 0xc8, 0x65, 0x05, 0x6d, 0xb0, 0xe3, 0x50,
+	0x2a, 0x4d, 0x0e, 0x6b, 0x2c, 0x63, 0xc9, 0x03, 0x7f, 0x8b, 0xc1, 0xbe, 0x54, 0x8f, 0x3d, 0xee,
+	0x34, 0x46, 0xf2, 0x45, 0x86, 0x5e, 0xdb, 0x6b, 0xcb, 0x6e, 0xcf, 0xfb, 0x3e, 0xcf, 0xcb, 0x4f,
+	0x7e, 0x30, 0x4c, 0x4c, 0x2d, 0xab, 0x22, 0xaf, 0x6a, 0xeb, 0x2d, 0xa3, 0x4a, 0x7a, 0x79, 0xfc,
+	0xd2, 0x6c, 0x7d, 0xd1, 0x6c, 0xf2, 0x2b, 0xbb, 0x3b, 0x35, 0xd6, 0xd8, 0x53, 0x34, 0x37, 0xcd,
+	0x57, 0x9c, 0x70, 0x40, 0xd5, 0x1d, 0x65, 0x05, 0xd0, 0x0b, 0x65, 0x34, 0x9b, 0x42, 0xbc, 0x5e,
+	0x72, 0x32, 0x27, 0x8b, 0x91, 0x88, 0xd7, 0x4b, 0xf6, 0x14, 0x12, 0xe7, 0x65, 0xed, 0x79, 0x8c,
+	0xab, 0x6e, 0x60, 0x33, 0x18, 0xe9, 0x52, 0xf1, 0x11, 0xee, 0x82, 0xc4, 0x5c, 0xa5, 0xb5, 0xe2,
+	0x74, 0x4e, 0x16, 0x44, 0x74, 0x03, 0x63, 0x40, 0xaf, 0xac, 0xf3, 0x3c, 0xc1, 0x20, 0xea, 0xac,
+	0x01, 0xfa, 0xc1, 0xaa, 0xff, 0x49, 0xcf, 0xe0, 0x68, 0xbd, 0xfc, 0x72, 0xe9, 0x76, 0x03, 0x6a,
+	0xbd, 0xbc, 0x74, 0xbb, 0x80, 0xba, 0x96, 0x1e, 0x51, 0x44, 0x04, 0x89, 0x1b, 0x5b, 0xf6, 0xa0,
+	0x20, 0x59, 0x06, 0xd4, 0xb7, 0x95, 0x46, 0xcc, 0xf4, 0x6c, 0x9a, 0x87, 0x02, 0xf2, 0x00, 0xf9,
+	0xd4, 0x56, 0x5a, 0xa0, 0x97, 0x7d, 0x86, 0x64, 0x15, 0x4a, 0x62, 0xcf, 0x21, 0x29, 0xad, 0xd2,
+	0x8e, 0x93, 0xf9, 0x68, 0x31, 0x39, 0x83, 0xbb, 0xf4, 0x39, 0xbd, 0xf9, 0x7d, 0x12, 0x89, 0xce,
+	0x0e, 0x39, 0xad, 0x8c, 0x76, 0x3c, 0xbe, 0x9f, 0x0b, 0x25, 0x0d, 0x39, 0xb4, 0xb3, 0x9f, 0x04,
+	0x26, 0x2b, 0xe9, 0x3e, 0x7a, 0xe9, 0xb7, 0xb6, 0x74, 0xec, 0x1d, 0x8c, 0x5d, 0xaf, 0x7b, 0xc4,
+	0x49, 0x77, 0x7a, 0x2f, 0x94, 0x0f, 0xe2, 0xa2, 0xf4, 0x75, 0x2b, 0xfe, 0x1d, 0x1c, 0xaf, 0xe0,
+	0xd1, 0x03, 0x2b, 0x7c, 0xec, 0x37, 0xdd, 0xf6, 0x35, 0x05, 0xc9, 0xe6, 0x90, 0x7c, 0x97, 0xd7,
+	0x8d, 0xc6, 0x9a, 0x1e, 0xbc, 0x5f, 0x74, 0xc6, 0xdb, 0xf8, 0x35, 0x79, 0xf1, 0x06, 0xc6, 0x43,
+	0x01, 0x6c, 0x0c, 0x54, 0x58, 0xa9, 0x66, 0x11, 0x9b, 0x02, 0xdc, 0xbd, 0x62, 0x46, 0xd8, 0x13,
+	0x78, 0xfc, 0xbe, 0x90, 0xb5, 0xd9, 0x96, 0x66, 0x58, 0xc6, 0xe7, 0xfc, 0x66, 0x9f, 0x92, 0xdb,
+	0x7d, 0x4a, 0xfe, 0xec, 0x53, 0xf2, 0xe3, 0x90, 0x46, 0xb7, 0x87, 0x34, 0xfa, 0x75, 0x48, 0xa3,
+	0xcd, 0x11, 0xfe, 0x2b, 0xaf, 0xfe, 0x06, 0x00, 0x00, 0xff, 0xff, 0x51, 0x96, 0x48, 0x58, 0x6f,
+	0x02, 0x00, 0x00,
+}
+
 func (m *Edge) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -305,6 +421,11 @@ func (m *Node) MarshalTo(dAtA []byte) (int, error) {
 		encoding_binary.LittleEndian.PutUint64(dAtA[i:], uint64(math.Float64bits(float64(m.Lon))))
 		i += 8
 	}
+	if m.Type != 0 {
+		dAtA[i] = 0x28
+		i++
+		i = encodeVarintGraph(dAtA, i, uint64(m.Type))
+	}
 	return i, nil
 }
 
@@ -345,6 +466,51 @@ func (m *Graph) MarshalTo(dAtA []byte) (int, error) {
 				return 0, err
 			}
 			i += n
+		}
+	}
+	return i, nil
+}
+
+func (m *GasStations) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalTo(dAtA)
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GasStations) MarshalTo(dAtA []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Stations) > 0 {
+		for k, _ := range m.Stations {
+			dAtA[i] = 0xa
+			i++
+			v := m.Stations[k]
+			msgSize := 0
+			if v != nil {
+				msgSize = v.Size()
+				msgSize += 1 + sovGraph(uint64(msgSize))
+			}
+			mapSize := 1 + sovGraph(uint64(k)) + msgSize
+			i = encodeVarintGraph(dAtA, i, uint64(mapSize))
+			dAtA[i] = 0x8
+			i++
+			i = encodeVarintGraph(dAtA, i, uint64(k))
+			if v != nil {
+				dAtA[i] = 0x12
+				i++
+				i = encodeVarintGraph(dAtA, i, uint64(v.Size()))
+				n1, err := v.MarshalTo(dAtA[i:])
+				if err != nil {
+					return 0, err
+				}
+				i += n1
+			}
 		}
 	}
 	return i, nil
@@ -401,6 +567,9 @@ func (m *Node) Size() (n int) {
 	if m.Lon != 0 {
 		n += 9
 	}
+	if m.Type != 0 {
+		n += 1 + sovGraph(uint64(m.Type))
+	}
 	return n
 }
 
@@ -420,6 +589,28 @@ func (m *Graph) Size() (n int) {
 		for _, e := range m.Edges {
 			l = e.Size()
 			n += 1 + l + sovGraph(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *GasStations) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.Stations) > 0 {
+		for k, v := range m.Stations {
+			_ = k
+			_ = v
+			l = 0
+			if v != nil {
+				l = v.Size()
+				l += 1 + sovGraph(uint64(l))
+			}
+			mapEntrySize := 1 + sovGraph(uint64(k)) + l
+			n += mapEntrySize + 1 + sovGraph(uint64(mapEntrySize))
 		}
 	}
 	return n
@@ -664,6 +855,25 @@ func (m *Node) Unmarshal(dAtA []byte) error {
 			v = uint64(encoding_binary.LittleEndian.Uint64(dAtA[iNdEx:]))
 			iNdEx += 8
 			m.Lon = float64(math.Float64frombits(v))
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
+			}
+			m.Type = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGraph
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Type |= (NodeType(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipGraph(dAtA[iNdEx:])
@@ -797,6 +1007,168 @@ func (m *Graph) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *GasStations) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowGraph
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GasStations: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GasStations: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Stations", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGraph
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGraph
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Stations == nil {
+				m.Stations = make(map[int64]*Node)
+			}
+			var mapkey int64
+			var mapvalue *Node
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowGraph
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					wire |= (uint64(b) & 0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowGraph
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						mapkey |= (int64(b) & 0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+				} else if fieldNum == 2 {
+					var mapmsglen int
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowGraph
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						mapmsglen |= (int(b) & 0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					if mapmsglen < 0 {
+						return ErrInvalidLengthGraph
+					}
+					postmsgIndex := iNdEx + mapmsglen
+					if mapmsglen < 0 {
+						return ErrInvalidLengthGraph
+					}
+					if postmsgIndex > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapvalue = &Node{}
+					if err := mapvalue.Unmarshal(dAtA[iNdEx:postmsgIndex]); err != nil {
+						return err
+					}
+					iNdEx = postmsgIndex
+				} else {
+					iNdEx = entryPreIndex
+					skippy, err := skipGraph(dAtA[iNdEx:])
+					if err != nil {
+						return err
+					}
+					if skippy < 0 {
+						return ErrInvalidLengthGraph
+					}
+					if (iNdEx + skippy) > postIndex {
+						return io.ErrUnexpectedEOF
+					}
+					iNdEx += skippy
+				}
+			}
+			m.Stations[mapkey] = mapvalue
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipGraph(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthGraph
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func skipGraph(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0
@@ -901,27 +1273,3 @@ var (
 	ErrInvalidLengthGraph = fmt.Errorf("proto: negative length found during unmarshaling")
 	ErrIntOverflowGraph   = fmt.Errorf("proto: integer overflow")
 )
-
-func init() { proto.RegisterFile("graph.proto", fileDescriptor_graph_ee08ab694546f511) }
-
-var fileDescriptor_graph_ee08ab694546f511 = []byte{
-	// 278 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x64, 0x90, 0xc1, 0x4a, 0xc3, 0x40,
-	0x18, 0x84, 0xb3, 0xc9, 0xa6, 0x87, 0xbf, 0x20, 0xb2, 0x28, 0x2c, 0x1e, 0xd6, 0xd2, 0x83, 0xe4,
-	0x62, 0x0a, 0xfa, 0x06, 0x25, 0x22, 0xbd, 0x58, 0xcc, 0xc5, 0xa3, 0x24, 0xdd, 0x75, 0x13, 0x30,
-	0xd9, 0x90, 0xdd, 0xbe, 0x87, 0x8f, 0xd5, 0x63, 0x8f, 0x9e, 0x44, 0x92, 0x17, 0x91, 0xfd, 0x63,
-	0x41, 0xf0, 0x36, 0xf3, 0xcf, 0xfc, 0x7c, 0x30, 0x30, 0xd7, 0x7d, 0xd1, 0x55, 0x69, 0xd7, 0x1b,
-	0x67, 0x18, 0x95, 0x85, 0x2b, 0xae, 0x6e, 0x75, 0xed, 0xaa, 0x7d, 0x99, 0xee, 0x4c, 0xb3, 0xd2,
-	0x46, 0x9b, 0x15, 0x86, 0xe5, 0xfe, 0x0d, 0x1d, 0x1a, 0x54, 0xd3, 0xd3, 0xb2, 0x02, 0xfa, 0x20,
-	0xb5, 0x62, 0x67, 0x10, 0x6e, 0x32, 0x4e, 0x16, 0x24, 0x89, 0xf2, 0xb0, 0xce, 0xd8, 0x05, 0xc4,
-	0xd6, 0x15, 0xbd, 0xe3, 0x21, 0x9e, 0x26, 0xc3, 0xce, 0x21, 0x52, 0xad, 0xe4, 0x11, 0xde, 0xbc,
-	0xc4, 0x5e, 0xa7, 0x94, 0xe4, 0x74, 0x41, 0x12, 0x92, 0x4f, 0x86, 0x31, 0xa0, 0x3b, 0x63, 0x1d,
-	0x8f, 0xb1, 0x88, 0x7a, 0xf9, 0x0c, 0xf4, 0xc9, 0xc8, 0xff, 0xa4, 0x4b, 0x98, 0x6d, 0xb2, 0xd7,
-	0xad, 0x6d, 0x4e, 0xa8, 0x3a, 0xdb, 0xda, 0xc6, 0xa3, 0xde, 0x0b, 0x87, 0x28, 0x92, 0x7b, 0x89,
-	0x17, 0xd3, 0xfe, 0x82, 0xbc, 0x5c, 0xbe, 0x40, 0xfc, 0xe8, 0x07, 0x60, 0x37, 0x10, 0xb7, 0x46,
-	0x2a, 0xcb, 0xc9, 0x22, 0x4a, 0xe6, 0x77, 0x90, 0xfa, 0x29, 0x52, 0x8f, 0x5b, 0xd3, 0xc3, 0xd7,
-	0x75, 0x90, 0x4f, 0xb1, 0xef, 0x29, 0xa9, 0x95, 0xe5, 0xe1, 0xdf, 0x9e, 0x1f, 0xe0, 0xd4, 0xc3,
-	0x78, 0xcd, 0x0f, 0x83, 0x20, 0xc7, 0x41, 0x90, 0xef, 0x41, 0x90, 0x8f, 0x51, 0x04, 0xc7, 0x51,
-	0x04, 0x9f, 0xa3, 0x08, 0xca, 0x19, 0xce, 0x76, 0xff, 0x13, 0x00, 0x00, 0xff, 0xff, 0x35, 0xf1,
-	0x06, 0x31, 0x7a, 0x01, 0x00, 0x00,
-}

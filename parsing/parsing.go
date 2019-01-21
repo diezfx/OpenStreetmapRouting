@@ -56,7 +56,7 @@ func parse() (*data.Graph, *data.MetaInfo) {
 		panic(err)
 	}
 
-	DataHandler2 := DataHandlerStep2{Graph: DataHandler.Graph}
+	DataHandler2 := DataHandlerStep2{Graph: DataHandler.Graph,GasStationList:DataHandler.GasStationList}
 
 	log.Info("Saving all nodes")
 	dec = loadDec()
@@ -83,6 +83,8 @@ func parse() (*data.Graph, *data.MetaInfo) {
 	info.EdgesTotal = len(DataHandler2.Graph.Edges)
 	info.NodesTotal = len(DataHandler2.Graph.Nodes)
 
+	DataHandler2.GasStationList.WriteFile(config)
+
 	//fmt.Println(len(graph.Offset))
 
 	log.Infof("parsing took %s", time.Since(start))
@@ -98,6 +100,7 @@ func ParseOrLoadGraph(config *config.Config) *data.Graph {
 		graphData, info = parse()
 		graphData.WriteToFile(config)
 		info.WriteToFile(config)
+
 	} else {
 		// load and init graph
 		dat, err := ioutil.ReadFile(config.OutputFilename)
@@ -112,5 +115,6 @@ func ParseOrLoadGraph(config *config.Config) *data.Graph {
 		}
 
 	}
+
 	return graphData
 }

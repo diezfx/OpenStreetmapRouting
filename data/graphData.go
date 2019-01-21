@@ -14,8 +14,10 @@ import (
 )
 
 // instance that is usable by dijkstra
+//todo look at DI
 var graphProd *GraphProd
 var info *MetaInfo
+var stations *GasStations
 
 // GraphRaw contains the node,edge lists and additionaly a map for the old/new id mapping
 type GraphRaw struct {
@@ -129,6 +131,20 @@ func (g *Graph) WriteToFile(config *config.Config) {
 
 }
 
+func (g *GasStations) WriteFile(config *config.Config) {
+	var encodedStations []byte
+
+	jsonGraph, err := json.Marshal(g)
+	encodedStations = jsonGraph
+	if err != nil {
+		logrus.Fatal(err)
+		return
+	}
+
+	ioutil.WriteFile(config.FuelStationsFilename, encodedStations, 0644)
+
+}
+
 //AddEdge adds an edge to the graph
 func (g *GraphRaw) AddEdge(e Edge) {
 	g.EdgeMutex.Lock()
@@ -228,6 +244,32 @@ func (i *MetaInfo) LoadInfo(conf *config.Config) {
 	}
 
 	err = json.Unmarshal(dat, i)
+
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+}
+
+func GetFuelStations() *GasStations {
+	if stations == nil {
+		logrus.Errorf("Info not initialized")
+
+		stations = &GasStations{}
+		stations.LoadInfo(config.GetConfig())
+
+	}
+	return stations
+}
+
+func (s *GasStations) LoadInfo(conf *config.Config) {
+
+	dat, err := ioutil.ReadFile(conf.FuelStationsFilename)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	err = json.Unmarshal(dat, s)
 
 	if err != nil {
 		log.Fatal(err.Error())
