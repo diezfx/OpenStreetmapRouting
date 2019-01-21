@@ -2,8 +2,10 @@ package data
 
 import (
 	"OpenStreetmapRouting/config"
+
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"sort"
 	"sync"
 
@@ -211,6 +213,24 @@ func GetGraphInfo() *MetaInfo {
 	if info == nil {
 		logrus.Errorf("Info not initialized")
 
+		info = &MetaInfo{}
+		info.LoadInfo(config.GetConfig())
+
 	}
 	return info
+}
+
+func (i *MetaInfo) LoadInfo(conf *config.Config) {
+
+	dat, err := ioutil.ReadFile(conf.InfoFilename)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	err = json.Unmarshal(dat, i)
+
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
 }
