@@ -101,7 +101,6 @@ func ParseOrLoadGraph(config *config.Config) *data.Graph {
 	} else {
 		// load and init graph
 		dat, err := ioutil.ReadFile(config.OutputFilename)
-		//todo try to parse if file not exists
 		if err != nil {
 			log.Fatal(err.Error())
 		}

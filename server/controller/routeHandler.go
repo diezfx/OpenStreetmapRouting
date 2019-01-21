@@ -46,14 +46,16 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 	// send a dijkstra request
 
 	route, err := dijkstra.GetRoute(start, end)
-
-	getRoute := route.ConvertToJson()
-
+	
 	if err != nil {
 		logrus.Error(err)
 		http.Error(w, "error calculating dijkstra", 500)
 		return
 	}
+
+	getRoute := route.ConvertToJson()
+
+
 
 	routeRaw, err := json.Marshal(getRoute)
 
