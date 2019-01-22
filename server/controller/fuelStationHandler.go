@@ -12,7 +12,9 @@ func FuelStationHandler(w http.ResponseWriter, r *http.Request) {
 
 	stations := data.GetFuelStations()
 
-	stationsJson, err := json.Marshal(stations)
+	stationsGet := stations.ConverToGetObject()
+
+	stationsJson, err := json.Marshal(stationsGet)
 
 	if err != nil || stations == nil {
 

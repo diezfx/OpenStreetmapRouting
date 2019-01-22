@@ -250,29 +250,3 @@ func (i *MetaInfo) LoadInfo(conf *config.Config) {
 	}
 
 }
-
-func GetFuelStations() *GasStations {
-	if stations == nil {
-		logrus.Errorf("Info not initialized")
-
-		stations = &GasStations{}
-		stations.LoadInfo(config.GetConfig())
-
-	}
-	return stations
-}
-
-func (s *GasStations) LoadInfo(conf *config.Config) {
-
-	dat, err := ioutil.ReadFile(conf.FuelStationsFilename)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	err = json.Unmarshal(dat, s)
-
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-}
