@@ -15,29 +15,29 @@ type Grid struct {
 }
 
 //InitGrid every node is added to a cell
-func (g *Grid) InitGrid(graph *GraphProd, config *config.Config) {
+func (g *Grid) InitGrid(nodeList []Node, config *config.Config) {
 
 	g.Grid = make(map[int][]*Node, 0)
 
 	g.LatSize = config.GridXSize
 	g.LongSize = config.GridYSize
 
-	g.latMin, g.latMax = findMinMaxLat(graph)
+	g.latMin, g.latMax = findMinMaxLat(nodeList)
 
-	g.longMin, g.longMax = findMinMaxLong(graph)
+	g.longMin, g.longMax = findMinMaxLong(nodeList)
 
 	//add all nodes
 	//init list if doesnt exist
-	for i, node := range graph.Nodes {
+	for i, node := range nodeList {
 		x, y := g.CalculateGridPos(node.Lat, node.Lon)
 		if list, ok := g.Grid[x*g.LatSize+y]; ok == true {
 
-			g.Grid[x*g.LatSize+y] = append(list, &graph.Nodes[i])
+			g.Grid[x*g.LatSize+y] = append(list, &nodeList[i])
 
 		} else {
 			list := make([]*Node, 0)
 
-			list = append(list, &graph.Nodes[i])
+			list = append(list, &nodeList[i])
 			g.Grid[x*g.LatSize+y] = list
 
 		}
@@ -45,12 +45,12 @@ func (g *Grid) InitGrid(graph *GraphProd, config *config.Config) {
 
 }
 
-func findMinMaxLat(graph *GraphProd) (min, max float64) {
+func findMinMaxLat(nodeList []Node) (min, max float64) {
 
 	max = -1.0
 	min = math.MaxFloat64
 
-	for _, node := range graph.Nodes {
+	for _, node := range nodeList {
 
 		if node.Lat > max {
 			max = node.Lat
@@ -64,12 +64,12 @@ func findMinMaxLat(graph *GraphProd) (min, max float64) {
 
 }
 
-func findMinMaxLong(graph *GraphProd) (min, max float64) {
+func findMinMaxLong(nodeList []Node) (min, max float64) {
 
 	max = -1.0
 	min = math.MaxFloat64
 
-	for _, node := range graph.Nodes {
+	for _, node := range nodeList {
 
 		if node.Lon > max {
 			max = node.Lon
@@ -83,11 +83,9 @@ func findMinMaxLong(graph *GraphProd) (min, max float64) {
 }
 
 func (g *Grid) CalculateGridPos(lat, long float64) (x, y int) {
-	x = -1
-	y = -1
 
 	deltaLat := g.latMax - g.latMin
-	deltaLong := g.longMax - g.latMin
+	deltaLong := g.longMax - g.longMin
 
 	//subtract the min to center then divide by delta
 	latRelative := (lat - g.latMin) / deltaLat
@@ -98,6 +96,42 @@ func (g *Grid) CalculateGridPos(lat, long float64) (x, y int) {
 	y = int(longRelative * float64(g.LongSize))
 
 	return
+}
+
+// idea for sending only data from an area
+// send all get gridpos north-east and south-west and send all nodes in this grid
+
+func (g *Grid) GetNodesInArea(north_east, south_west Coordinate) []*Node {
+
+	x_ne, y_ne := g.CalculateGridPos(north_east.Lat, north_east.Lon)
+	x_sw, y_sw := g.CalculateGridPos(south_west.Lat, south_west.Lon)
+
+	if x_ne > x_sw {
+		x_ne, y_ne = g.CalculateGridPos(south_west.Lat, south_west.Lon)
+		x_sw, y_sw = g.CalculateGridPos(north_east.Lat, north_east.Lon)
+	}
+
+	// get all grids between the rectangle spanned from ne,sw
+	// iterate over all grids
+	// at least one grid looked at
+
+	nodes := make([]*Node, 0)
+	for i := x_ne; i <= x_sw; i++ {
+
+		for j := y_ne; j <= y_sw; j++ {
+			nodes = append(nodes, g.Grid[g.convert2DTo1D(i, j)]...)
+
+		}
+	}
+
+	return nodes
+
+}
+
+func (g *Grid) convert2DTo1D(x, y int) int {
+
+	return x*g.LatSize + y
+
 }
 
 //FindNextNode searches for the closest node for the given point

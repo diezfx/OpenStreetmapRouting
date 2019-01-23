@@ -2,9 +2,9 @@ package main
 
 import (
 	"OpenStreetmapRouting/config"
+	"OpenStreetmapRouting/controller"
 	"OpenStreetmapRouting/data"
 	"OpenStreetmapRouting/parsing"
-	server "OpenStreetmapRouting/server"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -23,7 +23,7 @@ func main() {
 	elapsed := time.Since(start)
 	log.Infof("loading took %s", elapsed)
 
-	server.Start()
+	controller.Start()
 }
 
 func initLogger() {

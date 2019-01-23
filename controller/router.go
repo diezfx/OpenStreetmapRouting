@@ -1,7 +1,8 @@
-package router
+package controller
 
 import (
-	"OpenStreetmapRouting/server/controller"
+	"OpenStreetmapRouting/config"
+
 	"log"
 	"net/http"
 
@@ -9,15 +10,24 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type Server struct {
+	router *mux.Router
+	config *config.Config
+}
+
 func Start() {
-	r := mux.NewRouter()
-	r.HandleFunc("/", CorsHeader(controller.HomeHandler))
-	r.HandleFunc("/v1/route", CorsHeader(controller.RouteHandler))
-	r.HandleFunc("/v1/info", CorsHeader(controller.InfoHandler))
-	r.HandleFunc("/v1/stations", CorsHeader(controller.FuelStationHandler))
+
+	s := Server{config: config.GetConfig()}
+
+	s.router = mux.NewRouter()
+
+	s.router.HandleFunc("/", CorsHeader(HomeHandler))
+	s.router.HandleFunc("/v1/route", CorsHeader(RouteHandler))
+	s.router.HandleFunc("/v1/info", CorsHeader(InfoHandler))
+	s.router.HandleFunc("/v1/stations", CorsHeader(s.FuelStationHandler()))
 
 	logrus.Infof("Server startet at localhost:8000 ")
-	http.ListenAndServe("localhost:8000", r)
+	http.ListenAndServe("localhost:8000", s.router)
 }
 
 func CorsHeader(request http.HandlerFunc) http.HandlerFunc {

@@ -31,7 +31,7 @@ func (d *DataHandlerStep1) InitGraph() {
 	edgeList := make([]data.Edge, 0, 7500000)
 	info := data.MetaInfo{RoadTypes: make(map[string]int, 0)}
 
-	fuelList := data.GasStations{Stations: make(map[int64]*data.Node, 0)}
+	fuelList := data.GasStations{Stations: make(map[int64]data.Node, 0)}
 
 	d.Graph = &data.GraphRaw{NodeIDs: make(map[int64]int64, 0), Nodes: nodeList, Edges: edgeList, Info: info}
 	d.GasStationList = &fuelList
@@ -79,7 +79,7 @@ func (d *DataHandlerStep2) ReadNode(n gosmparse.Node) {
 
 		}
 
-		node := &data.Node{ID: n.ID, ID_Osm: n.ID, Lat: n.Lat, Lon: n.Lon, Type: fuelType}
+		node := data.Node{ID: n.ID, ID_Osm: n.ID, Lat: n.Lat, Lon: n.Lon, Type: fuelType}
 		d.GasStationList.Stations[n.ID] = node
 	}
 	d.Graph.NodeIDMutex.Unlock()
@@ -138,7 +138,7 @@ func (d *DataHandlerStep1) ReadWay(w gosmparse.Way) {
 
 			}
 
-			node := &data.Node{ID: w.ID, ID_Osm: ID, Type: fuelType}
+			node := data.Node{ID: w.ID, ID_Osm: ID, Type: fuelType}
 			d.GasStationList.Stations[ID] = node
 
 		}

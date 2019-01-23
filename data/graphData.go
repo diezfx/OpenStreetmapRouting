@@ -17,7 +17,6 @@ import (
 //todo look at DI
 var graphProd *GraphProd
 var info *MetaInfo
-var stations *GasStations
 
 // GraphRaw contains the node,edge lists and additionaly a map for the old/new id mapping
 type GraphRaw struct {
@@ -207,7 +206,7 @@ func InitGraphProd(graphData *Graph, conf *config.Config) *GraphProd {
 	g.CalcOffsetList()
 
 	grid := Grid{}
-	grid.InitGrid(g, conf)
+	grid.InitGrid(g.Nodes, conf)
 
 	g.Grid = grid
 

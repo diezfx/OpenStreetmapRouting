@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
-
-	"github.com/sirupsen/logrus"
 )
 
 type FuelStationGet struct {
@@ -14,13 +12,10 @@ type FuelStationGet struct {
 }
 
 func GetFuelStations() *GasStations {
-	if stations == nil {
-		logrus.Warnf("Info not initialized")
 
-		stations = &GasStations{}
-		stations.LoadInfo(config.GetConfig())
+	stations := &GasStations{}
+	stations.LoadInfo(config.GetConfig())
 
-	}
 	return stations
 }
 
@@ -46,10 +41,11 @@ func (g *GasStations) ConverToGetObject() *FuelStationGet {
 
 	for _, v := range g.Stations {
 
-		stationJsonGet.Stations[i] = v
+		stationJsonGet.Stations[i] = &v
 		i++
 	}
 
 	return &stationJsonGet
 
 }
+
