@@ -92,8 +92,8 @@ func (g *Grid) CalculateGridPos(lat, long float64) (x, y int) {
 	longRelative := (long - g.longMin) / deltaLong
 
 	//
-	x = int(latRelative * float64(g.LatSize))
-	y = int(longRelative * float64(g.LongSize))
+	x = int(math.Round(latRelative * float64(g.LatSize)))
+	y = int(math.Round(longRelative * float64(g.LongSize)))
 
 	return
 }
@@ -101,14 +101,30 @@ func (g *Grid) CalculateGridPos(lat, long float64) (x, y int) {
 // idea for sending only data from an area
 // send all get gridpos north-east and south-west and send all nodes in this grid
 
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
 func (g *Grid) GetNodesInArea(north_east, south_west Coordinate) []*Node {
 
 	x_ne, y_ne := g.CalculateGridPos(north_east.Lat, north_east.Lon)
 	x_sw, y_sw := g.CalculateGridPos(south_west.Lat, south_west.Lon)
 
+	x_start := x_ne
+	x_end := x_sw
 	if x_ne > x_sw {
-		x_ne, y_ne = g.CalculateGridPos(south_west.Lat, south_west.Lon)
-		x_sw, y_sw = g.CalculateGridPos(north_east.Lat, north_east.Lon)
+		x_start = x_sw
+		x_end = x_ne
+
+	}
+	y_start := y_ne
+	y_end := y_sw
+	if y_ne > y_sw {
+		y_start = y_sw
+		y_end = y_ne
 	}
 
 	// get all grids between the rectangle spanned from ne,sw
@@ -116,9 +132,10 @@ func (g *Grid) GetNodesInArea(north_east, south_west Coordinate) []*Node {
 	// at least one grid looked at
 
 	nodes := make([]*Node, 0)
-	for i := x_ne; i <= x_sw; i++ {
+	for i := x_start; i <= x_end; i++ {
 
-		for j := y_ne; j <= y_sw; j++ {
+		for j := y_start; j <= y_end; j++ {
+
 			nodes = append(nodes, g.Grid[g.convert2DTo1D(i, j)]...)
 
 		}

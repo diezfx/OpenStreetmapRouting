@@ -38,7 +38,7 @@ func (d *DataHandlerStep1) InitGraph() {
 
 }
 
-var unvalidRoadTypes = []string{"footway", "bridleway", "steps", "path", "cycleway", "construction", "track"}
+var unvalidRoadTypes = []string{"footway", "bridleway", "steps", "path", "cycleway", "construction", "track", "planned", "proposed"}
 
 var gasStations_Charging = []string{"charging_station", "fuel"}
 
@@ -104,10 +104,10 @@ func (d *DataHandlerStep1) ReadWay(w gosmparse.Way) {
 		}
 		d.Graph.NodeIDMutex.Unlock()
 
-		//speed := parseSpeed(w)
+		speed := parseSpeed(w)
 
 		for i, ID := range w.NodeIDs[:len(w.NodeIDs)-1] {
-			edge := data.Edge{ID: w.ID, Start: ID, End: w.NodeIDs[i+1]}
+			edge := data.Edge{ID: w.ID, Start: ID, End: w.NodeIDs[i+1], Speed: speed}
 			d.Graph.AddEdge(edge)
 
 		}
@@ -115,7 +115,7 @@ func (d *DataHandlerStep1) ReadWay(w gosmparse.Way) {
 		// if it's not oneway create edges the other way round as well
 		if onewayTag, _ := w.Tags["oneway"]; onewayTag != "yes" {
 			for i := len(w.NodeIDs) - 1; i > 1; i-- {
-				edge := data.Edge{ID: w.ID, Start: w.NodeIDs[i], End: w.NodeIDs[i-1]}
+				edge := data.Edge{ID: w.ID, Start: w.NodeIDs[i], End: w.NodeIDs[i-1], Speed: speed}
 				d.Graph.AddEdge(edge)
 			}
 		}

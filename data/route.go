@@ -32,7 +32,28 @@ func (nr *NodeRoute) ConvertToJson() *GetRoute {
 
 }
 
+func ConvertAreaToJson(route []*Edge, g *GraphProd) *GeoJsonArea {
+
+	getArea := GeoJsonArea{Type: "MultiLineString", Coordinates: make([][][]float64, 0)}
+
+	for _, edge := range route {
+
+		miniRoute := [][]float64{[]float64{g.Nodes[edge.Start].Lon, g.Nodes[edge.Start].Lat},
+			[]float64{g.Nodes[edge.End].Lon, g.Nodes[edge.End].Lat}}
+		getArea.Coordinates = append(getArea.Coordinates, miniRoute)
+
+	}
+
+	return &getArea
+
+}
+
 type GeoJsonRoute struct {
 	Type        string      `json:"type"`
 	Coordinates [][]float64 `json:"coordinates"`
+}
+
+type GeoJsonArea struct {
+	Type        string        `json:"type"`
+	Coordinates [][][]float64 `json:"coordinates"`
 }

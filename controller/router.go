@@ -2,6 +2,7 @@ package controller
 
 import (
 	"OpenStreetmapRouting/config"
+	"OpenStreetmapRouting/data"
 
 	"log"
 	"net/http"
@@ -13,16 +14,18 @@ import (
 type Server struct {
 	router *mux.Router
 	config *config.Config
+	graph  *data.GraphProd
 }
 
-func Start() {
+func Start(graph *data.GraphProd) {
 
-	s := Server{config: config.GetConfig()}
+	s := Server{config: config.GetConfig(), graph: graph}
 
 	s.router = mux.NewRouter()
 
 	s.router.HandleFunc("/", CorsHeader(HomeHandler))
 	s.router.HandleFunc("/v1/route", CorsHeader(RouteHandler))
+	s.router.HandleFunc("/v1/route/area", CorsHeader(s.RouteAreaHandler))
 	s.router.HandleFunc("/v1/info", CorsHeader(InfoHandler))
 	s.router.HandleFunc("/v1/stations", CorsHeader(s.FuelStationHandler()))
 

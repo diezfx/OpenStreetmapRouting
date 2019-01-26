@@ -17,13 +17,13 @@ func main() {
 
 	initLogger()
 
-	InitGraphProd()
+	graph := InitGraphProd()
 
 	log.Info("Ready!!")
 	elapsed := time.Since(start)
 	log.Infof("loading took %s", elapsed)
 
-	controller.Start()
+	controller.Start(graph)
 }
 
 func initLogger() {

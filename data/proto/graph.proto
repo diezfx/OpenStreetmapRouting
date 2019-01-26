@@ -27,7 +27,7 @@ message Graph{
 }
 
 message GasStations{
-	map<int64, Node> stations = 1;
+	map<int64, Node> stations = 1 [(gogoproto.nullable) = false];
 }
 
 

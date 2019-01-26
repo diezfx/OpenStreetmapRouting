@@ -20,8 +20,8 @@ outputFilename: "res/graph.bin"
 # 1 Info| 2 Warning | 3 Error
 logLevel: 0
 
-gridXSize: 100
-gridYSize: 100
+gridXSize: 500
+gridYSize: 500
 
 
 infoFilename: "res/metaInfo.json"

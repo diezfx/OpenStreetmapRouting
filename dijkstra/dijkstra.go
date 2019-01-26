@@ -108,6 +108,7 @@ func CalcDijkstra(g *data.GraphProd, start *data.Node, target *data.Node) (*data
 
 		optWay = append(optWay, &g.Nodes[edge.Start])
 		edge = prevs[edge.Start]
+
 	}
 
 	route := data.NodeRoute{Route: optWay, TotalCost: minCost}
