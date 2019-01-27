@@ -56,7 +56,7 @@ func parse() (*data.Graph, *data.MetaInfo) {
 		panic(err)
 	}
 
-	DataHandler2 := DataHandlerStep2{Graph: DataHandler.Graph,GasStationList:DataHandler.GasStationList}
+	DataHandler2 := DataHandlerStep2{Graph: DataHandler.Graph, GasStationList: DataHandler.GasStationList}
 
 	log.Info("Saving all nodes")
 	dec = loadDec()

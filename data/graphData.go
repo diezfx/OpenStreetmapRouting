@@ -2,6 +2,7 @@ package data
 
 import (
 	"OpenStreetmapRouting/config"
+	"math/rand"
 
 	"encoding/json"
 	"io/ioutil"
@@ -9,6 +10,7 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/golang-collections/collections/queue"
 	"github.com/sirupsen/logrus"
 	"github.com/umahmood/haversine"
 )
@@ -55,11 +57,13 @@ type MetaInfoGet struct {
 }
 
 //UpdateIDs update the ids in the edges and calculate the cost
-// sort list after edges
+//  list after edges
 // open channel and send them while still creating the raw node graph cooler
 func (g *GraphRaw) UpdateIDs() *Graph {
 
 	graph := Graph{Edges: g.Edges, Nodes: g.Nodes}
+
+	// finded biggest connected component
 
 	for i, edge := range g.Edges {
 		edge.Start = int64(g.NodeIDs[edge.Start])
@@ -69,8 +73,77 @@ func (g *GraphRaw) UpdateIDs() *Graph {
 		g.Edges[i] = edge
 	}
 
-	sortEdges(g.Edges)
+	SortEdges(g.Edges)
 	return &graph
+
+}
+
+// returns a list which give every node a component; returns the biggest component
+// super non optimal
+func CalcConnectedComponent(g *GraphProd) []bool {
+
+	//what is the nr of the biggest one?
+	maxComponentNr := 0
+	//how many nodes are in it?
+	maxComponenCount := 0
+
+	randomStarts := make([]int, 5)
+
+	for i := 0; i < len(randomStarts); i++ {
+
+		randomStarts[i] = rand.Intn(len(g.Nodes) - 1)
+	}
+	var visited []bool
+
+	for i, start := range randomStarts {
+		visited = make([]bool, len(g.Nodes))
+
+		if visited[start] == false {
+			count := bfs(g, visited, g.Nodes[start])
+
+			if count >= maxComponenCount {
+
+				maxComponentNr = i
+				maxComponenCount = count
+			}
+
+		}
+	}
+
+	if maxComponenCount != maxComponentNr {
+		visited = make([]bool, len(g.Nodes))
+		bfs(g, visited, g.Nodes[randomStarts[maxComponentNr]])
+
+	}
+
+	logrus.Debugf("The maximum estimated number of connected nodes is %d", maxComponenCount)
+	return visited
+}
+
+// returns true if there is a connection to biggest component so far
+func bfs(g *GraphProd, visited []bool, start Node) int {
+	q := queue.New()
+
+	q.Enqueue(start.ID)
+	counter := 0
+
+	for q.Len() > 0 {
+		curr := g.Nodes[q.Dequeue().(int64)]
+
+		edgeBegin := g.Offset[curr.ID]
+		edgeEnd := g.Offset[curr.ID+1]
+
+		for i := edgeBegin; i < edgeEnd; i++ {
+
+			if visited[g.Edges[i].End] == false {
+				q.Enqueue(g.Edges[i].End)
+				visited[g.Edges[i].End] = true
+				counter++
+
+			}
+		}
+	}
+	return counter
 
 }
 
@@ -159,13 +232,13 @@ func calcEdgeCost(start, end *Node, e *Edge) int64 {
 	return int64((dist * 1000 / (e.Speed / 10000)))
 }
 
-func sortEdges(edges []Edge) {
+func SortEdges(edges []Edge) {
 
-	sortIDs := func(i, j int) bool {
+	IDs := func(i, j int) bool {
 		return edges[i].Start < edges[j].Start
 
 	}
-	sort.Slice(edges, sortIDs)
+	sort.Slice(edges, IDs)
 
 }
 
@@ -173,6 +246,8 @@ func sortEdges(edges []Edge) {
 func (g *GraphProd) CalcOffsetList() {
 
 	currNodeID := 0
+
+	g.Offset = make([]int, 0, len(g.Nodes))
 
 	g.Offset = append(g.Offset, 0)
 
@@ -213,6 +288,38 @@ func InitGraphProd(graphData *Graph, conf *config.Config) *GraphProd {
 	graphProd = g
 
 	return g
+
+}
+
+// add stations to nodeList
+// connect station to main graph
+// calculate offsetlist, sort edges
+func InitGraphProdWithStations(graphProd *GraphProd, conf *config.Config) {
+
+	visited := CalcConnectedComponent(graphProd)
+
+	graphProd.Grid.connectedComponent = visited
+
+	// add stations to graph
+
+	for _, station := range GetFuelStations().Stations {
+		station.ID = int64(len(graphProd.Nodes))
+		graphProd.Nodes = append(graphProd.Nodes, station)
+
+		//connect station to closest mainroad noad
+		connectNode := graphProd.Grid.FindNextNode(station.Lat, station.Lon, true)
+
+		newEdge := Edge{ID: int64(len(graphProd.Edges)), Start: station.ID, End: connectNode.ID, Speed: 5, Cost: 10}
+		newBackEdge := Edge{ID: int64(len(graphProd.Edges) + 1), Start: connectNode.ID, End: station.ID, Speed: 5, Cost: 10}
+
+		graphProd.Edges = append(graphProd.Edges, newEdge, newBackEdge)
+
+	}
+	// order is important
+	// node order should be correct already
+	SortEdges(graphProd.Edges)
+
+	graphProd.CalcOffsetList()
 
 }
 

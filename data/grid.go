@@ -8,6 +8,7 @@ import (
 //Grid contains a grid that helps finding the next node to a Lat long input
 type Grid struct {
 	Grid                             map[int][]*Node
+	connectedComponent               []bool
 	latMin, latMax, longMin, longMax float64
 
 	LatSize  int
@@ -152,7 +153,7 @@ func (g *Grid) convert2DTo1D(x, y int) int {
 }
 
 //FindNextNode searches for the closest node for the given point
-func (g *Grid) FindNextNode(lat, long float64) *Node {
+func (g *Grid) FindNextNode(lat, long float64, mainComponent bool) *Node {
 
 	//first try the gridCell it is in
 	x, y := g.CalculateGridPos(lat, long)
@@ -163,6 +164,23 @@ func (g *Grid) FindNextNode(lat, long float64) *Node {
 		candidates = append(candidates, list...)
 	}
 
+	//don't waste too much time out of bounds
+	// not completely correct
+	if g.latMin > lat {
+		lat = g.latMin
+	}
+	if g.latMax < lat {
+		lat = g.latMax
+	}
+
+	if g.longMin > long {
+		long = g.longMin
+	}
+	if g.longMax < long {
+		long = g.longMax
+	}
+
+	//start := time.Now()
 	for dist := 0; true; dist++ {
 		for i := 0; i <= dist; i++ {
 
@@ -197,12 +215,30 @@ func (g *Grid) FindNextNode(lat, long float64) *Node {
 
 		//a candidate exists?
 		//else add more cells
-		if dist%2 == 0 {
-			if len(candidates) > 0 {
-				return findClosestNode(candidates, lat, long)
 
+		if mainComponent {
+
+			newCandidates := make([]*Node, 0)
+
+			//filter candidates if only maincomp is allowed too lazy to do it at top
+			for _, candidate := range candidates {
+				if g.connectedComponent[candidate.ID] {
+					newCandidates = append(newCandidates, candidate)
+
+				}
 			}
+			candidates = newCandidates
+
 		}
+
+		if len(candidates) > 0 {
+
+			return findClosestNode(candidates, lat, long)
+			//elapsed := time.Since(start)
+			//logrus.Debugf("Elapsed time %s with distance: %d", elapsed, dist)
+
+		}
+
 	}
 
 	//should never be reached
