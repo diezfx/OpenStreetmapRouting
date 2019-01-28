@@ -14,15 +14,17 @@ import (
 type DataHandlerStep1 struct {
 	//Graph data.Graph
 
-	Graph          *data.GraphRaw
-	GasStationList *data.GasStations
+	Graph               *data.GraphRaw
+	GasStationList      *data.GasStations
+	ChargingStationList *data.GasStations
 }
 
 type DataHandlerStep2 struct {
 	//Graph data.Graph
 
-	Graph          *data.GraphRaw
-	GasStationList *data.GasStations
+	Graph               *data.GraphRaw
+	GasStationList      *data.GasStations
+	ChargingStationList *data.GasStations
 }
 
 func (d *DataHandlerStep1) InitGraph() {
@@ -31,10 +33,12 @@ func (d *DataHandlerStep1) InitGraph() {
 	edgeList := make([]data.Edge, 0, 7500000)
 	info := data.MetaInfo{RoadTypes: make(map[string]int, 0)}
 
-	fuelList := data.GasStations{Stations: make(map[int64]data.Node, 0)}
+	gasList := data.GasStations{Stations: make(map[int64]data.Node, 0)}
+	chargeList := data.GasStations{Stations: make(map[int64]data.Node, 0)}
 
 	d.Graph = &data.GraphRaw{NodeIDs: make(map[int64]int64, 0), Nodes: nodeList, Edges: edgeList, Info: info}
-	d.GasStationList = &fuelList
+	d.GasStationList = &gasList
+	d.ChargingStationList = &chargeList
 
 }
 
@@ -70,17 +74,17 @@ func (d *DataHandlerStep2) ReadNode(n gosmparse.Node) {
 
 	} else if hTag, _ := n.Tags["amenity"]; contains(gasStations_Charging, hTag) {
 
-		var fuelType data.NodeType
-
 		if hTag == "charging_station" {
-			fuelType = data.NodeType_ChargingStation
+			fuelType := data.NodeType_ChargingStation
+			node := data.Node{ID: n.ID, ID_Osm: n.ID, Lat: n.Lat, Lon: n.Lon, Type: fuelType}
+			d.ChargingStationList.Stations[n.ID] = node
 		} else {
-			fuelType = data.NodeType_GasStation
+			fuelType := data.NodeType_GasStation
+			node := data.Node{ID: n.ID, ID_Osm: n.ID, Lat: n.Lat, Lon: n.Lon, Type: fuelType}
+			d.GasStationList.Stations[n.ID] = node
 
 		}
 
-		node := data.Node{ID: n.ID, ID_Osm: n.ID, Lat: n.Lat, Lon: n.Lon, Type: fuelType}
-		d.GasStationList.Stations[n.ID] = node
 	}
 	d.Graph.NodeIDMutex.Unlock()
 }
@@ -126,18 +130,17 @@ func (d *DataHandlerStep1) ReadWay(w gosmparse.Way) {
 
 		//just add one of the nodes
 		// todo find solution
-		for _, ID := range w.NodeIDs[:len(w.NodeIDs)-1] {
-			//ID is non unique Id(from way), ID_osm is unique id
 
-			var fuelType data.NodeType
+		//ID is non unique Id(from way), ID_osm is unique id
+		ID := w.NodeIDs[0]
+		var fuelType data.NodeType
 
-			if hTag == "charging_station" {
-				fuelType = data.NodeType_ChargingStation
-			} else {
-				fuelType = data.NodeType_GasStation
-
-			}
-
+		if hTag == "charging_station" {
+			fuelType = data.NodeType_ChargingStation
+			node := data.Node{ID: w.ID, ID_Osm: ID, Type: fuelType}
+			d.ChargingStationList.Stations[ID] = node
+		} else {
+			fuelType = data.NodeType_GasStation
 			node := data.Node{ID: w.ID, ID_Osm: ID, Type: fuelType}
 			d.GasStationList.Stations[ID] = node
 

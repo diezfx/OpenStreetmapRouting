@@ -151,12 +151,12 @@ func (g *GraphRaw) AddEdge(e Edge) {
 	g.EdgeMutex.Unlock()
 }
 
-//calcEdgeCost get distance then divide by the speed to get the cost for the edge
+//calcEdgeCost get distance in cm
 func calcEdgeCost(start, end *Node, e *Edge) int64 {
 
 	_, dist := haversine.Distance(haversine.Coord{Lat: start.Lat, Lon: start.Lon}, haversine.Coord{Lat: end.Lat, Lon: end.Lon})
 
-	return int64((dist * 1000 / (e.Speed / 10000)))
+	return int64(dist * 1000 * 100)
 }
 
 func sortEdges(edges []Edge) {
