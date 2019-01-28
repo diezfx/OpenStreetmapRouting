@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/thomersch/gosmparse"
 )
@@ -14,17 +15,29 @@ import (
 type DataHandlerStep1 struct {
 	//Graph data.Graph
 
+<<<<<<< HEAD
 	Graph               *data.GraphRaw
 	GasStationList      *data.GasStations
 	ChargingStationList *data.GasStations
+=======
+	Graph          *data.GraphRaw
+	GasStationList *data.GasStations
+	fuelListLock   sync.Mutex
+>>>>>>> 65318823011260f0b9223cdee0560efb4b9db744
 }
 
 type DataHandlerStep2 struct {
 	//Graph data.Graph
 
+<<<<<<< HEAD
 	Graph               *data.GraphRaw
 	GasStationList      *data.GasStations
 	ChargingStationList *data.GasStations
+=======
+	Graph          *data.GraphRaw
+	GasStationList *data.GasStations
+	fuelListLock   sync.Mutex
+>>>>>>> 65318823011260f0b9223cdee0560efb4b9db744
 }
 
 func (d *DataHandlerStep1) InitGraph() {
@@ -55,7 +68,6 @@ func (d *DataHandlerStep2) ReadNode(n gosmparse.Node) {
 	if nodeID, ok := d.Graph.NodeIDs[n.ID]; ok == true {
 
 		if nodeID == -1 {
-			// needs testing  this solution or do the second field later
 
 			node := data.Node{ID: int64(len(d.Graph.Nodes)), ID_Osm: n.ID, Lat: n.Lat, Lon: n.Lon}
 			d.Graph.Nodes = append(d.Graph.Nodes, node)
@@ -65,14 +77,20 @@ func (d *DataHandlerStep2) ReadNode(n gosmparse.Node) {
 		}
 
 	}
+	d.Graph.NodeIDMutex.Unlock()
 
 	// either is already there from way parsing; just add infos or create anew
+
+	d.fuelListLock.Lock()
 	if node, ok := d.GasStationList.Stations[n.ID]; ok == true {
 
 		node.Lat = n.Lat
 		node.Lon = n.Lon
 
-	} else if hTag, _ := n.Tags["amenity"]; contains(gasStations_Charging, hTag) {
+		d.GasStationList.Stations[n.ID] = node
+	}
+
+	if hTag, _ := n.Tags["amenity"]; contains(gasStations_Charging, hTag) {
 
 		if hTag == "charging_station" {
 			fuelType := data.NodeType_ChargingStation
@@ -86,7 +104,8 @@ func (d *DataHandlerStep2) ReadNode(n gosmparse.Node) {
 		}
 
 	}
-	d.Graph.NodeIDMutex.Unlock()
+	d.fuelListLock.Unlock()
+
 }
 func (d *DataHandlerStep1) ReadWay(w gosmparse.Way) {
 	// only take streets
@@ -125,7 +144,7 @@ func (d *DataHandlerStep1) ReadWay(w gosmparse.Way) {
 		}
 
 	}
-
+	d.fuelListLock.Lock()
 	if hTag, _ := w.Tags["amenity"]; contains(gasStations_Charging, hTag) {
 
 		//just add one of the nodes
@@ -147,6 +166,7 @@ func (d *DataHandlerStep1) ReadWay(w gosmparse.Way) {
 		}
 
 	}
+	d.fuelListLock.Unlock()
 
 }
 func (d *DataHandlerStep2) ReadWay(w gosmparse.Way)           {}

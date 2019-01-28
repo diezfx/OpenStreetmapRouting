@@ -13,11 +13,12 @@ import (
 func main() {
 
 	start := time.Now()
-	config.LoadConfig("res/config.yaml")
+	conf := config.LoadConfig("res/config.yaml")
 
 	initLogger()
 
 	graph := InitGraphProd()
+	data.InitGraphProdWithStations(graph, conf)
 
 	log.Info("Ready!!")
 	elapsed := time.Since(start)
