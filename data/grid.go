@@ -216,7 +216,7 @@ func (g *Grid) FindNextNode(lat, long float64, mainComponent bool) *Node {
 		//a candidate exists?
 		//else add more cells
 
-		if mainComponent {
+		/*if mainComponent {
 
 			newCandidates := make([]*Node, 0)
 
@@ -229,7 +229,7 @@ func (g *Grid) FindNextNode(lat, long float64, mainComponent bool) *Node {
 			}
 			candidates = newCandidates
 
-		}
+		}*/
 
 		if len(candidates) > 0 {
 

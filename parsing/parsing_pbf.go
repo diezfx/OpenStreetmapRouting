@@ -15,29 +15,19 @@ import (
 type DataHandlerStep1 struct {
 	//Graph data.Graph
 
-<<<<<<< HEAD
 	Graph               *data.GraphRaw
 	GasStationList      *data.GasStations
 	ChargingStationList *data.GasStations
-=======
-	Graph          *data.GraphRaw
-	GasStationList *data.GasStations
-	fuelListLock   sync.Mutex
->>>>>>> 65318823011260f0b9223cdee0560efb4b9db744
+	fuelListLock        sync.Mutex
 }
 
 type DataHandlerStep2 struct {
 	//Graph data.Graph
 
-<<<<<<< HEAD
 	Graph               *data.GraphRaw
 	GasStationList      *data.GasStations
 	ChargingStationList *data.GasStations
-=======
-	Graph          *data.GraphRaw
-	GasStationList *data.GasStations
-	fuelListLock   sync.Mutex
->>>>>>> 65318823011260f0b9223cdee0560efb4b9db744
+	fuelListLock        sync.Mutex
 }
 
 func (d *DataHandlerStep1) InitGraph() {
