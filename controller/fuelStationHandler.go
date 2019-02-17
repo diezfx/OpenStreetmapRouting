@@ -11,7 +11,7 @@ import (
 
 func (s *Server) FuelStationHandler() http.HandlerFunc {
 
-	stations := data.GetFuelStations()
+	stations := s.stations
 
 	stationsGrid := data.Grid{}
 

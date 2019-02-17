@@ -46,6 +46,8 @@ func (d *DataHandlerStep1) InitGraph() {
 }
 
 var unvalidRoadTypes = []string{"footway", "bridleway", "steps", "path", "cycleway", "construction", "track", "planned", "proposed"}
+var validRoadTypes = []string{"motorway_link", "secondary", "trunk_link", "residential", "tertiary", "living_street", "motorway", "secondary_link",
+	"service", "unclassified", "primary", "primary_link", "trunk", "road"}
 
 var gasStations_Charging = []string{"charging_station", "fuel"}
 
@@ -99,7 +101,7 @@ func (d *DataHandlerStep2) ReadNode(n gosmparse.Node) {
 }
 func (d *DataHandlerStep1) ReadWay(w gosmparse.Way) {
 	// only take streets
-	if hTag, ok := w.Tags["highway"]; ok == true && !contains(unvalidRoadTypes, hTag) {
+	if hTag, ok := w.Tags["highway"]; ok == true && contains(validRoadTypes, hTag) {
 
 		d.Graph.NodeIDMutex.Lock()
 		d.Graph.Info.RoadTypes[hTag]++

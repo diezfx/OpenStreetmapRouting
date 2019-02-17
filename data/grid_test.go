@@ -11,18 +11,18 @@ func TestGridGeneration(t *testing.T) {
 	graph := &data.GraphProd{Nodes: nodes, Edges: edges}
 	grid.InitGrid(graph.Nodes, conf)
 
-	node := grid.FindNextNode(1, 1)
+	node := grid.FindNextNode(1, 1, false)
 	if node.ID != 0 {
 		t.Errorf("Expected NodeId %d got %d", 0, node.ID)
 	}
 
-	node = grid.FindNextNode(10, 1)
+	node = grid.FindNextNode(10, 1, false)
 
 	if node.ID != 1 {
 		t.Errorf("Expected NodeId %d got %d", 1, node.ID)
 	}
 
-	node = grid.FindNextNode(4, 4.1)
+	node = grid.FindNextNode(4, 4.1, false)
 
 	if node.ID != 4 {
 		t.Errorf("Expected NodeId %d got %d", 4, node.ID)

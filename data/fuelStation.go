@@ -19,6 +19,10 @@ func GetFuelStations() *GasStations {
 	return stations
 }
 
+func (s *GasStations) SetStations(stations map[int64]Node) {
+	s.Stations = stations
+}
+
 func (s *GasStations) LoadInfo(conf *config.Config) {
 
 	dat, err := ioutil.ReadFile(conf.FuelStationsFilename)
@@ -34,18 +38,17 @@ func (s *GasStations) LoadInfo(conf *config.Config) {
 
 }
 
-func (g *GasStations) ConverToGetObject() *FuelStationGet {
+func (s *GasStations) ConverToGetObject() *FuelStationGet {
 
-	stationJsonGet := FuelStationGet{make([]*Node, len(g.Stations))}
+	stationJSONGet := FuelStationGet{make([]*Node, len(s.Stations))}
 	i := 0
 
-	for _, v := range g.Stations {
+	for _, v := range s.Stations {
 
-		stationJsonGet.Stations[i] = &v
+		stationJSONGet.Stations[i] = &v
 		i++
 	}
 
-	return &stationJsonGet
+	return &stationJSONGet
 
 }
-

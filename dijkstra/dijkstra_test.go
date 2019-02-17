@@ -4,13 +4,18 @@ import (
 	"OpenStreetmapRouting/config"
 	"OpenStreetmapRouting/data"
 	"OpenStreetmapRouting/dijkstra"
-	"os"
 	"testing"
 
 	"github.com/sirupsen/logrus"
 )
 
-var nodes = []data.Node{{ID: 0, Lat: 1.0, Lon: 1.0}, {ID: 1, Lat: 10.0, Lon: 1.0}, {ID: 2, Lat: 1.0, Lon: 10.0}, {ID: 3, Lat: 3.0, Lon: 3.0}, {ID: 5, Lat: 5.0, Lon: 5.0}, {ID: 5, Lat: 10101010, Lon: 1010}, {ID: 6, Lat: 5.0, Lon: 5.0}}
+var nodes = []data.Node{{ID: 0, Lat: 1.0, Lon: 1.0},
+	{ID: 1, Lat: 10.0, Lon: 1.0},
+	{ID: 2, Lat: 1.0, Lon: 10.0},
+	{ID: 3, Lat: 3.0, Lon: 3.0},
+	{ID: 5, Lat: 5.0, Lon: 5.0},
+	{ID: 5, Lat: 10101010, Lon: 1010},
+	{ID: 6, Lat: 5.0, Lon: 5.0}}
 var edges = []data.Edge{{Start: 0, End: 1, Cost: 9},
 	{Start: 0, End: 2, Cost: 8},
 	{Start: 0, End: 4, Cost: 7},
@@ -27,7 +32,7 @@ var conf *config.Config
 
 var graph *data.GraphProd
 
-func TestMain(m *testing.M) {
+func Init(nodes []data.Node, edges []data.Edge) {
 
 	conf = config.LoadConfig("../res/config_test.yaml")
 
@@ -37,11 +42,11 @@ func TestMain(m *testing.M) {
 	graphData := data.Graph{Nodes: nodes, Edges: edges}
 	graph = data.InitGraphProd(&graphData, conf)
 
-	os.Exit(m.Run())
-
 }
 
 func TestDijkstraCostCalc(t *testing.T) {
+
+	Init(nodes, edges)
 
 	route, _ := dijkstra.CalcDijkstra(graph, &graph.Nodes[0], &graph.Nodes[2])
 

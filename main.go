@@ -18,13 +18,13 @@ func main() {
 	initLogger()
 
 	graph := InitGraphProd()
-	data.InitGraphProdWithStations(graph, conf)
+	stations := data.InitGraphProdWithStations(graph, conf)
 
 	log.Info("Ready!!")
 	elapsed := time.Since(start)
 	log.Infof("loading took %s", elapsed)
 
-	controller.Start(graph)
+	controller.Start(graph, stations)
 }
 
 func initLogger() {

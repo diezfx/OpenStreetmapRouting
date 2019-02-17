@@ -18,8 +18,8 @@ func GetRoute(start data.Coordinate, end data.Coordinate) (*data.NodeRoute, erro
 
 	logrus.Infof("Find nodes close to Node")
 	startTime := time.Now()
-	startNode := graph.Grid.FindNextNode(start.Lat, start.Lon, false)
-	endNode := graph.Grid.FindNextNode(end.Lat, end.Lon, false)
+	startNode := graph.Grid.FindNextNode(start.Lat, start.Lon, true)
+	endNode := graph.Grid.FindNextNode(end.Lat, end.Lon, true)
 
 	gridTime := time.Since(startTime)
 
@@ -95,28 +95,22 @@ func CalcDijkstra(g *data.GraphProd, start *data.Node, target *data.Node) (*data
 
 	// add all nodes that are on the optimal way
 
-	optWay := make([]*data.Node, 0)
-	edge = prevs[target.ID]
-	minCost := edge.Cost
-	if edge.Cost == math.MaxInt64 {
-		return nil, errors.New("no way found")
+	route, err := findWayToGoal(start, target, g, prevs)
+	if err != nil {
+		return nil, err
 	}
+	routeReverse := make([]*data.Node, len(route.Route))
 
-	optWay = append(optWay, &g.Nodes[edge.End])
-
-	for edge.End != start.ID {
-
-		optWay = append(optWay, &g.Nodes[edge.Start])
-		edge = prevs[edge.Start]
-
+	// reverse it
+	for i := len(route.Route) - 1; i >= 0; i-- {
+		routeReverse[i] = route.Route[i]
 	}
+	route.Route = routeReverse
 
-	route := data.NodeRoute{Route: optWay, TotalCost: minCost}
-
-	return &route, nil
+	return route, err
 }
 
-// CalcDijkstra takes a starting node and returns all edges on the way
+// CalcDijkstraToMany takes a starting node and returns all edges on the way
 // uses edges for the overview of cost and the way to the previous node
 func CalcDijkstraToMany(g *data.GraphProd, start *data.Node) ([]data.Edge, error) {
 
@@ -167,7 +161,30 @@ func CalcDijkstraToMany(g *data.GraphProd, start *data.Node) ([]data.Edge, error
 		}
 	}
 
+	return prevs, nil
+}
+
+// lists all nodes from the target to goal
+func findWayToGoal(start, target *data.Node, g *data.GraphProd, prevs []data.Edge) (*data.NodeRoute, error) {
 	// add all nodes that are on the optimal way
 
-	return prevs, nil
+	optWay := make([]*data.Node, 0)
+	edge := prevs[target.ID]
+	minCost := edge.Cost
+	if edge.Cost == math.MaxInt64 {
+		return nil, errors.New("no way found")
+	}
+
+	optWay = append(optWay, &g.Nodes[edge.End])
+
+	for edge.End != start.ID {
+
+		optWay = append(optWay, &g.Nodes[edge.Start])
+		edge = prevs[edge.Start]
+
+	}
+
+	route := data.NodeRoute{Route: optWay, TotalCost: minCost}
+
+	return &route, nil
 }

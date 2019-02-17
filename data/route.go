@@ -1,28 +1,38 @@
 package data
 
-// reduced data for drawing
+// GetRoute reduced data for drawing
 type GetRoute struct {
-	Route GeoJsonRoute
+	Route GeoJSONRoute
 
 	TotalCost int64
 }
 
+// GetRouteWithStations .
+type GetRouteWithStations struct {
+	Route    GeoJSONRoute
+	Stations []Node
+
+	TotalCost int64
+}
+
+// Coordinate lat long coordinate
 type Coordinate struct {
 	Lat float64
 	Lon float64
 }
 
+// NodeRoute route
 type NodeRoute struct {
 	Route     []*Node
 	TotalCost int64
 }
 
-// convert and reverse
-func (nr *NodeRoute) ConvertToJson() *GetRoute {
+// ConvertToJSON takes the nodeRoute and returns a geojson linestring
+func (nr *NodeRoute) ConvertToJSON() *GetRoute {
 
-	getRoute := GetRoute{Route: GeoJsonRoute{Type: "LineString", Coordinates: make([][]float64, 0)}, TotalCost: nr.TotalCost}
+	getRoute := GetRoute{Route: GeoJSONRoute{Type: "LineString", Coordinates: make([][]float64, 0)}, TotalCost: nr.TotalCost}
 
-	for i := len(nr.Route) - 1; i >= 0; i-- {
+	for i := range nr.Route {
 
 		getRoute.Route.Coordinates = append(getRoute.Route.Coordinates, []float64{nr.Route[i].Lon, nr.Route[i].Lat})
 
@@ -32,9 +42,10 @@ func (nr *NodeRoute) ConvertToJson() *GetRoute {
 
 }
 
-func ConvertAreaToJson(route []*Edge, g *GraphProd) *GeoJsonArea {
+// ConvertAreaToJSON takes all route in an area and converts them to multilinestring geojson format
+func ConvertAreaToJSON(route []*Edge, g *GraphProd) *GeoJSONArea {
 
-	getArea := GeoJsonArea{Type: "MultiLineString", Coordinates: make([][][]float64, 0)}
+	getArea := GeoJSONArea{Type: "MultiLineString", Coordinates: make([][][]float64, 0)}
 
 	for _, edge := range route {
 
@@ -48,12 +59,14 @@ func ConvertAreaToJson(route []*Edge, g *GraphProd) *GeoJsonArea {
 
 }
 
-type GeoJsonRoute struct {
+// GeoJSONRoute route in geojson format
+type GeoJSONRoute struct {
 	Type        string      `json:"type"`
 	Coordinates [][]float64 `json:"coordinates"`
 }
 
-type GeoJsonArea struct {
+// GeoJSONArea all route in area in geojson format
+type GeoJSONArea struct {
 	Type        string        `json:"type"`
 	Coordinates [][][]float64 `json:"coordinates"`
 }

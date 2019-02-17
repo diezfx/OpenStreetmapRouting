@@ -109,23 +109,23 @@ func abs(x int) int {
 	return x
 }
 
-func (g *Grid) GetNodesInArea(north_east, south_west Coordinate) []*Node {
+func (g *Grid) GetNodesInArea(northEast, southWest Coordinate) []*Node {
 
-	x_ne, y_ne := g.CalculateGridPos(north_east.Lat, north_east.Lon)
-	x_sw, y_sw := g.CalculateGridPos(south_west.Lat, south_west.Lon)
+	xNE, yNE := g.CalculateGridPos(northEast.Lat, northEast.Lon)
+	xSW, ySW := g.CalculateGridPos(southWest.Lat, southWest.Lon)
 
-	x_start := x_ne
-	x_end := x_sw
-	if x_ne > x_sw {
-		x_start = x_sw
-		x_end = x_ne
+	xStart := xNE
+	xEnd := xSW
+	if xNE > xSW {
+		xStart = xSW
+		xEnd = xNE
 
 	}
-	y_start := y_ne
-	y_end := y_sw
-	if y_ne > y_sw {
-		y_start = y_sw
-		y_end = y_ne
+	yStart := yNE
+	yEnd := ySW
+	if yNE > ySW {
+		yStart = ySW
+		yEnd = yNE
 	}
 
 	// get all grids between the rectangle spanned from ne,sw
@@ -133,9 +133,9 @@ func (g *Grid) GetNodesInArea(north_east, south_west Coordinate) []*Node {
 	// at least one grid looked at
 
 	nodes := make([]*Node, 0)
-	for i := x_start; i <= x_end; i++ {
+	for i := xStart; i <= xEnd; i++ {
 
-		for j := y_start; j <= y_end; j++ {
+		for j := yStart; j <= yEnd; j++ {
 
 			nodes = append(nodes, g.Grid[g.convert2DTo1D(i, j)]...)
 
@@ -216,7 +216,7 @@ func (g *Grid) FindNextNode(lat, long float64, mainComponent bool) *Node {
 		//a candidate exists?
 		//else add more cells
 
-		/*if mainComponent {
+		if mainComponent {
 
 			newCandidates := make([]*Node, 0)
 
@@ -229,7 +229,7 @@ func (g *Grid) FindNextNode(lat, long float64, mainComponent bool) *Node {
 			}
 			candidates = newCandidates
 
-		}*/
+		}
 
 		if len(candidates) > 0 {
 
@@ -253,7 +253,7 @@ func findClosestNode(nodes []*Node, targetLat, targetLon float64) *Node {
 	pos := -1
 
 	for i, node := range nodes {
-		dist := CalcEuclidDist(math.Abs(targetLat-node.Lat), math.Abs(targetLon-node.Lon))
+		dist := CalcEuclidDist(targetLat, node.Lat, targetLon, node.Lon)
 		if dist < minDist {
 			pos = i
 			minDist = dist
@@ -264,7 +264,9 @@ func findClosestNode(nodes []*Node, targetLat, targetLon float64) *Node {
 
 }
 
-func CalcEuclidDist(x, y float64) float64 {
+func CalcEuclidDist(x1, x2, y1, y2 float64) float64 {
 
-	return math.Sqrt(math.Pow(x+y, 2))
+	d1 := math.Abs(x1 - y1)
+	d2 := math.Abs(x2 - y2)
+	return math.Sqrt(math.Pow(d1, 2) + math.Pow(d2, 2))
 }

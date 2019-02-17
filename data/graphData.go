@@ -78,7 +78,7 @@ func (g *GraphRaw) UpdateIDs() *Graph {
 
 }
 
-// returns a list which give every node a component; returns the biggest component
+// CalcConnectedComponent returns a list which give every node a component; returns the biggest component
 // super non optimal
 func CalcConnectedComponent(g *GraphProd) []bool {
 
@@ -149,7 +149,7 @@ func bfs(g *GraphProd, visited []bool, start Node) int {
 
 func (i *MetaInfo) WriteToFile(config *config.Config) {
 
-	infoJson, err := json.Marshal(i)
+	infoJSON, err := json.Marshal(i)
 
 	info = i
 
@@ -158,22 +158,22 @@ func (i *MetaInfo) WriteToFile(config *config.Config) {
 		return
 	}
 
-	ioutil.WriteFile(config.InfoFilename, infoJson, 0644)
+	ioutil.WriteFile(config.InfoFilename, infoJSON, 0644)
 
 }
 
-//conversion is needed for vue.js table
+//ConverToGetObject conversion is needed for vue.js table
 func (i *MetaInfo) ConverToGetObject() *MetaInfoGet {
 
-	infoJsonGet := MetaInfoGet{RoadTypes: make([]RoadType, 0), NodesTotal: i.NodesTotal, EdgesTotal: i.EdgesTotal}
+	infoJSONGet := MetaInfoGet{RoadTypes: make([]RoadType, 0), NodesTotal: i.NodesTotal, EdgesTotal: i.EdgesTotal}
 
 	for k, v := range i.RoadTypes {
 
 		roadType := RoadType{Type: k, Count: v}
-		infoJsonGet.RoadTypes = append(infoJsonGet.RoadTypes, roadType)
+		infoJSONGet.RoadTypes = append(infoJSONGet.RoadTypes, roadType)
 	}
 
-	return &infoJsonGet
+	return &infoJSONGet
 
 }
 
@@ -273,7 +273,7 @@ func (g *GraphProd) CalcOffsetList() {
 
 }
 
-// //add the offset list that is needed for dijkstra and the grid
+//InitGraphProd add the offset list that is needed for dijkstra and the grid
 func InitGraphProd(graphData *Graph, conf *config.Config) *GraphProd {
 
 	g := &GraphProd{Nodes: graphData.Nodes, Edges: graphData.Edges}
@@ -291,18 +291,24 @@ func InitGraphProd(graphData *Graph, conf *config.Config) *GraphProd {
 
 }
 
-// add stations to nodeList
+// InitGraphProdWithStations add stations to nodeList
 // connect station to main graph
 // calculate offsetlist, sort edges
-func InitGraphProdWithStations(graphProd *GraphProd, conf *config.Config) {
+func InitGraphProdWithStations(graphProd *GraphProd, conf *config.Config) *GasStations {
 
 	visited := CalcConnectedComponent(graphProd)
 
 	graphProd.Grid.connectedComponent = visited
 
-	// add stations to graph
+	stations := GetFuelStations()
 
-	for _, station := range GetFuelStations().Stations {
+	// add stations to graph
+	// update stations map with new ids
+
+	stationsNew := make(map[int64]Node)
+
+	for _, station := range stations.Stations {
+
 		station.ID = int64(len(graphProd.Nodes))
 		graphProd.Nodes = append(graphProd.Nodes, station)
 
@@ -313,13 +319,23 @@ func InitGraphProdWithStations(graphProd *GraphProd, conf *config.Config) {
 		newBackEdge := Edge{ID: int64(len(graphProd.Edges) + 1), Start: connectNode.ID, End: station.ID, Speed: 5, Cost: 10}
 
 		graphProd.Edges = append(graphProd.Edges, newEdge, newBackEdge)
+		stationsNew[station.ID] = station
+
+		if station.ID > 10000000 {
+			logrus.Debug(station.ID)
+		}
 
 	}
+
+	stations.SetStations(stationsNew)
+
 	// order is important
 	// node order should be correct already
 	SortEdges(graphProd.Edges)
 
 	graphProd.CalcOffsetList()
+
+	return stations
 
 }
 

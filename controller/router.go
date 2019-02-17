@@ -12,19 +12,21 @@ import (
 )
 
 type Server struct {
-	router *mux.Router
-	config *config.Config
-	graph  *data.GraphProd
+	router   *mux.Router
+	config   *config.Config
+	graph    *data.GraphProd
+	stations *data.GasStations
 }
 
-func Start(graph *data.GraphProd) {
+func Start(graph *data.GraphProd, stations *data.GasStations) {
 
-	s := Server{config: config.GetConfig(), graph: graph}
+	s := Server{config: config.GetConfig(), graph: graph, stations: stations}
 
 	s.router = mux.NewRouter()
 
 	s.router.HandleFunc("/", CorsHeader(HomeHandler))
 	s.router.HandleFunc("/v1/route", CorsHeader(RouteHandler))
+	s.router.HandleFunc("/v1/routewithstation", CorsHeader(s.RouteStationHandler))
 	s.router.HandleFunc("/v1/route/area", CorsHeader(s.RouteAreaHandler))
 	s.router.HandleFunc("/v1/info", CorsHeader(InfoHandler))
 	s.router.HandleFunc("/v1/stations", CorsHeader(s.FuelStationHandler()))
