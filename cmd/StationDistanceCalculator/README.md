@@ -1,0 +1,1 @@
+Calculates the "cheapest way" from all stations to all stations

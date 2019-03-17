@@ -42,7 +42,7 @@ func parse() (*data.Graph, *data.MetaInfo) {
 
 	config := config.GetConfig()
 
-	log.Info(config)
+	log.Debug(config)
 
 	DataHandler := DataHandlerStep1{}
 	DataHandler.InitGraph()

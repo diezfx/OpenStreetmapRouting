@@ -48,7 +48,7 @@ func initLogger() {
 
 }
 
-//InitGraphProd calculates the offsetlist and creates the grid for the given graph
+//Init calculates the offsetlist and creates the grid for the given graph
 func InitGraphProd() *data.GraphProd {
 
 	conf := config.GetConfig()
