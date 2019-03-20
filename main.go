@@ -5,6 +5,7 @@ import (
 	"OpenStreetmapRouting/controller"
 	"OpenStreetmapRouting/data"
 	"OpenStreetmapRouting/parsing"
+	colorable "github.com/mattn/go-colorable"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -17,14 +18,17 @@ func main() {
 
 	initLogger()
 
-	graph := InitGraphProd()
+	graph := InitGraphProd(conf)
 	stations := data.InitGraphProdWithStations(graph, conf)
+
+	// init grid for stations
+	stationsGrid := InitStationsGrid(stations, conf)
 
 	log.Info("Ready!!")
 	elapsed := time.Since(start)
 	log.Infof("loading took %s", elapsed)
 
-	controller.Start(graph, stations)
+	controller.Start(graph, stations, stationsGrid)
 }
 
 func initLogger() {
@@ -43,19 +47,32 @@ func initLogger() {
 	}
 
 	log.SetReportCaller(true)
+	log.SetFormatter(&log.TextFormatter{ForceColors: true})
+	log.SetOutput(colorable.NewColorableStdout())
 
 	log.SetLevel(logLevel)
 
 }
 
 //InitGraphProd calculates the offsetlist and creates the grid for the given graph
-func InitGraphProd() *data.GraphProd {
+func InitGraphProd(conf *config.Config) *data.GraphProd {
 
-	conf := config.GetConfig()
 	graphData := parsing.ParseOrLoadGraph(conf)
 
 	g := data.InitGraphProd(graphData, conf)
 
 	return g
 
+}
+
+func InitStationsGrid(stations *data.GasStations, conf *config.Config) *data.Grid {
+	stationsGrid := data.Grid{}
+	stationList := make([]data.Node, len(stations.Stations))
+	i := 0
+	for _, value := range stations.Stations {
+		stationList[i] = value
+		i++
+	}
+	stationsGrid.InitGrid(stationList, conf)
+	return &stationsGrid
 }

@@ -88,7 +88,13 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		logrus.Error(err)
-		http.Error(w, "error calculating dijkstra", 500)
+		mes := data.Message{Title: "no way found"}
+
+		mesB, _ := json.Marshal(mes)
+		w.WriteHeader(http.StatusInternalServerError)
+
+		w.Write(mesB)
+
 		return
 	}
 

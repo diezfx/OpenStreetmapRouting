@@ -12,15 +12,16 @@ import (
 )
 
 type Server struct {
-	router   *mux.Router
-	config   *config.Config
-	graph    *data.GraphProd
-	stations *data.GasStations
+	router       *mux.Router
+	config       *config.Config
+	graph        *data.GraphProd
+	stations     *data.GasStations
+	stationsGrid *data.Grid
 }
 
-func Start(graph *data.GraphProd, stations *data.GasStations) {
+func Start(graph *data.GraphProd, stations *data.GasStations, stationsGrid *data.Grid) {
 
-	s := Server{config: config.GetConfig(), graph: graph, stations: stations}
+	s := Server{config: config.GetConfig(), graph: graph, stations: stations, stationsGrid: stationsGrid}
 
 	s.router = mux.NewRouter()
 
@@ -30,8 +31,9 @@ func Start(graph *data.GraphProd, stations *data.GasStations) {
 	s.router.HandleFunc("/v1/route/area", CorsHeader(s.RouteAreaHandler))
 	s.router.HandleFunc("/v1/info", CorsHeader(InfoHandler))
 	s.router.HandleFunc("/v1/stations", CorsHeader(s.FuelStationHandler()))
+	s.router.HandleFunc("/v1/reachablestations", CorsHeader(s.ReachableStationsHandler()))
 
-	logrus.Infof("Server startet at localhost:8000 ")
+	logrus.Infof("Server started at localhost:8000 ")
 	http.ListenAndServe("localhost:8000", s.router)
 }
 

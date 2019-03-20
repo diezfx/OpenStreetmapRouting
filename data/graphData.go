@@ -313,7 +313,7 @@ func InitGraphProdWithStations(graphProd *GraphProd, conf *config.Config) *GasSt
 		graphProd.Nodes = append(graphProd.Nodes, station)
 
 		//connect station to closest mainroad noad
-		connectNode := graphProd.Grid.FindNextNode(station.Lat, station.Lon, true)
+		connectNode := graphProd.Grid.FindNextNode(station.Lat, station.Lon, false)
 
 		newEdge := Edge{ID: int64(len(graphProd.Edges)), Start: station.ID, End: connectNode.ID, Speed: 5, Cost: 10}
 		newBackEdge := Edge{ID: int64(len(graphProd.Edges) + 1), Start: connectNode.ID, End: station.ID, Speed: 5, Cost: 10}

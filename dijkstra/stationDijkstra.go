@@ -133,3 +133,35 @@ func CalcEuclidDist(x1, x2, y1, y2 float64) float64 {
 	d2 := math.Abs(x2 - y2)
 	return math.Sqrt(math.Pow(d1, 2) + math.Pow(d2, 2))
 }
+
+func StationsReachable(start data.Coordinate) (Reachable []*data.Node, Unreachable []*data.Node) {
+
+	stations := data.GetFuelStations()
+	graph := data.GetGraphProd()
+
+	Reachable = make([]*data.Node, 0)
+	Unreachable = make([]*data.Node, 0)
+	errorCount := 0
+
+	startNode := graph.Grid.FindNextNode(48.739889600673365, 9.105295872250478, false)
+	goalCosts, _ := CalcDijkstraToMany(graph, startNode)
+
+	for _, station := range stations.Stations {
+
+		goalNode := graph.Grid.FindNextNode(station.Lat, station.Lon, false)
+
+		if goalCosts[goalNode.ID].Cost >= math.MaxInt64 {
+			Unreachable = append(Unreachable, goalNode)
+			errorCount++
+		} else {
+			Reachable = append(Reachable, goalNode)
+		}
+	}
+
+	if errorCount > 0 {
+		logrus.Errorf("Expected all stations reachable got %d errors", errorCount)
+
+	}
+	return
+
+}

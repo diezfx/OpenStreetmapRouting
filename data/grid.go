@@ -215,21 +215,22 @@ func (g *Grid) FindNextNode(lat, long float64, mainComponent bool) *Node {
 
 		//a candidate exists?
 		//else add more cells
+		/*
+			if mainComponent {
 
-		if mainComponent {
+				newCandidates := make([]*Node, 0)
 
-			newCandidates := make([]*Node, 0)
+				//filter candidates if only maincomp is allowed too lazy to do it at top
+				for _, candidate := range candidates {
+					if g.connectedComponent[candidate.ID] {
+						newCandidates = append(newCandidates, candidate)
 
-			//filter candidates if only maincomp is allowed too lazy to do it at top
-			for _, candidate := range candidates {
-				if g.connectedComponent[candidate.ID] {
-					newCandidates = append(newCandidates, candidate)
-
+					}
 				}
-			}
-			candidates = newCandidates
+				candidates = newCandidates
 
-		}
+			}
+		*/
 
 		if len(candidates) > 0 {
 
@@ -253,7 +254,7 @@ func findClosestNode(nodes []*Node, targetLat, targetLon float64) *Node {
 	pos := -1
 
 	for i, node := range nodes {
-		dist := CalcEuclidDist(targetLat, node.Lat, targetLon, node.Lon)
+		dist := CalcEuclidDist(targetLat, targetLon, node.Lat, node.Lon)
 		if dist < minDist {
 			pos = i
 			minDist = dist
