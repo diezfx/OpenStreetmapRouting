@@ -2,7 +2,6 @@ package data
 
 import (
 	"OpenStreetmapRouting/config"
-	"math/rand"
 
 	"encoding/json"
 	"io/ioutil"
@@ -78,6 +77,7 @@ func (g *GraphRaw) UpdateIDs() *Graph {
 
 // CalcConnectedComponent returns a list which give every node a component; returns the biggest component
 // super non optimal
+/*
 func CalcConnectedComponent(g *GraphProd) []bool {
 
 	//what is the nr of the biggest one?
@@ -117,6 +117,7 @@ func CalcConnectedComponent(g *GraphProd) []bool {
 	logrus.Debugf("The maximum estimated number of connected nodes is %d", maxComponenCount)
 	return visited
 }
+*/
 
 // returns true if there is a connection to biggest component so far
 func bfs(g *GraphProd, visited []bool, start Node) int {
@@ -253,9 +254,9 @@ func InitGraphProd(graphData *Graph, conf *config.Config) *GraphProd {
 // calculate offsetlist, sort edges again
 func InitGraphProdWithStations(graphProd *GraphProd, conf *config.Config) *GasStations {
 
-	visited := CalcConnectedComponent(graphProd)
+	//visited := CalcConnectedComponent(graphProd)
 
-	graphProd.Grid.connectedComponent = visited
+	//graphProd.Grid.connectedComponent = visited
 
 	stations := GetFuelStations()
 

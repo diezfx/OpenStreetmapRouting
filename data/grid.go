@@ -8,7 +8,6 @@ import (
 //Grid contains a grid that helps finding the next node to a Lat long input
 type Grid struct {
 	Grid                             map[int][]*Node
-	connectedComponent               []bool
 	latMin, latMax, longMin, longMax float64
 
 	LatSize  int
