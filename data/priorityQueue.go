@@ -11,7 +11,7 @@ type Item struct {
 }
 
 // A PriorityQueue implements heap.Interface and holds Items.
-type PriorityQueue []*Item
+type PriorityQueue []Item
 
 func (pq PriorityQueue) Len() int { return len(pq) }
 
@@ -27,7 +27,7 @@ func (pq PriorityQueue) Swap(i, j int) {
 
 func (pq *PriorityQueue) Push(x interface{}) {
 	n := len(*pq)
-	item := x.(*Item)
+	item := x.(Item)
 	item.Index = n
 	*pq = append(*pq, item)
 }
@@ -42,7 +42,7 @@ func (pq *PriorityQueue) Pop() interface{} {
 }
 
 // update modifies the Priority and Value of an Item in the queue.
-func (pq *PriorityQueue) update(item *Item, Value interface{}, Priority int64) {
+func (pq *PriorityQueue) update(item Item, Value interface{}, Priority int64) {
 	item.Value = Value
 	item.Priority = Priority
 	heap.Fix(pq, item.Index)

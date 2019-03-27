@@ -10,9 +10,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func GetRoute(start data.Coordinate, end data.Coordinate) (*data.NodeRoute, error) {
-
-	graph := data.GetGraphProd()
+//GetRoute returns an object that contains the waycost and the optimal way to end
+func GetRoute(graph *data.GraphProd, start data.Coordinate, end data.Coordinate) (*data.NodeRoute, error) {
 
 	logrus.Debug(start, end)
 
@@ -41,7 +40,7 @@ func GetRoute(start data.Coordinate, end data.Coordinate) (*data.NodeRoute, erro
 // uses edges for the overview of cost and the way to the previous node
 func CalcDijkstra(g *data.GraphProd, start *data.Node, target *data.Node) (*data.NodeRoute, error) {
 
-	pq := make(data.PriorityQueue, 0, 10)
+	pq := make(data.PriorityQueue, 0)
 
 	if start.ID == target.ID {
 		route := &data.NodeRoute{Route: make([]*data.Node, 0), TotalCost: 0}
@@ -61,11 +60,11 @@ func CalcDijkstra(g *data.GraphProd, start *data.Node, target *data.Node) (*data
 	heap.Init(&pq)
 	//edge for the begining
 	edge := data.Edge{ID: -1, End: start.ID, Start: start.ID, Cost: 0}
-	heap.Push(&pq, &data.Item{Value: edge, Priority: 0})
+	heap.Push(&pq, data.Item{Value: edge, Priority: 0})
 
 	for pq.Len() > 0 {
 
-		item := heap.Pop(&pq).(*data.Item)
+		item := heap.Pop(&pq).(data.Item)
 
 		currentEdge := item.Value.(data.Edge)
 
@@ -87,7 +86,7 @@ func CalcDijkstra(g *data.GraphProd, start *data.Node, target *data.Node) (*data
 
 			// skip if cost is bigger then what we already know
 			if newItem.Priority < prevs[g.Edges[i].End].Cost {
-				heap.Push(&pq, &newItem)
+				heap.Push(&pq, newItem)
 
 			}
 		}
@@ -129,11 +128,11 @@ func CalcDijkstraToMany(g *data.GraphProd, start *data.Node) ([]data.Edge, error
 	heap.Init(&pq)
 	//edge for the begining
 	edge := data.Edge{ID: -1, End: start.ID, Start: start.ID, Cost: 0}
-	heap.Push(&pq, &data.Item{Value: edge, Priority: 0})
+	heap.Push(&pq, data.Item{Value: edge, Priority: 0})
 
 	for pq.Len() > 0 {
 
-		item := heap.Pop(&pq).(*data.Item)
+		item := heap.Pop(&pq).(data.Item)
 
 		currentEdge := item.Value.(data.Edge)
 
@@ -155,7 +154,7 @@ func CalcDijkstraToMany(g *data.GraphProd, start *data.Node) ([]data.Edge, error
 
 			// skip if cost is bigger then what we already know
 			if newItem.Priority < prevs[g.Edges[i].End].Cost {
-				heap.Push(&pq, &newItem)
+				heap.Push(&pq, newItem)
 
 			}
 		}

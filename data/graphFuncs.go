@@ -7,12 +7,10 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
-	"sort"
 	"sync"
 
 	"github.com/golang-collections/collections/queue"
 	"github.com/sirupsen/logrus"
-	"github.com/umahmood/haversine"
 )
 
 // instance that is usable by dijkstra
@@ -203,45 +201,6 @@ func (g *Graph) WriteToFile(config *config.Config) {
 
 }
 
-func (g *GasStations) WriteFile(config *config.Config) {
-	var encodedStations []byte
-
-	jsonGraph, err := json.Marshal(g)
-	encodedStations = jsonGraph
-	if err != nil {
-		logrus.Fatal(err)
-		return
-	}
-
-	ioutil.WriteFile(config.FuelStationsFilename, encodedStations, 0644)
-
-}
-
-//AddEdge adds an edge to the graph
-func (g *GraphRaw) AddEdge(e Edge) {
-	g.EdgeMutex.Lock()
-	g.Edges = append(g.Edges, e)
-	g.EdgeMutex.Unlock()
-}
-
-//calcEdgeCost get distance in cm
-func calcEdgeCost(start, end *Node, e *Edge) int64 {
-
-	_, dist := haversine.Distance(haversine.Coord{Lat: start.Lat, Lon: start.Lon}, haversine.Coord{Lat: end.Lat, Lon: end.Lon})
-
-	return int64(dist * 1000 * 100)
-}
-
-func SortEdges(edges []Edge) {
-
-	IDs := func(i, j int) bool {
-		return edges[i].Start < edges[j].Start
-
-	}
-	sort.Slice(edges, IDs)
-
-}
-
 //CalcOffsetList calculates the offset list
 func (g *GraphProd) CalcOffsetList() {
 
@@ -262,9 +221,7 @@ func (g *GraphProd) CalcOffsetList() {
 				g.Offset = append(g.Offset, i)
 				currNodeID++
 			}
-
 		}
-
 	}
 	for j := currNodeID; j < len(g.Nodes); j++ {
 		g.Offset = append(g.Offset, len(g.Edges))
@@ -293,7 +250,7 @@ func InitGraphProd(graphData *Graph, conf *config.Config) *GraphProd {
 
 // InitGraphProdWithStations add stations to nodeList
 // connect station to main graph
-// calculate offsetlist, sort edges
+// calculate offsetlist, sort edges again
 func InitGraphProdWithStations(graphProd *GraphProd, conf *config.Config) *GasStations {
 
 	visited := CalcConnectedComponent(graphProd)
@@ -326,25 +283,14 @@ func InitGraphProdWithStations(graphProd *GraphProd, conf *config.Config) *GasSt
 		}
 
 	}
-
 	stations.SetStations(stationsNew)
 
 	// order is important
 	// node order should be correct already
 	SortEdges(graphProd.Edges)
-
 	graphProd.CalcOffsetList()
 
 	return stations
-
-}
-
-func GetGraphProd() *GraphProd {
-	if graphProd == nil {
-		logrus.Fatal("Graph is not initialized")
-	}
-
-	return graphProd
 }
 
 func GetGraphInfo() *MetaInfo {

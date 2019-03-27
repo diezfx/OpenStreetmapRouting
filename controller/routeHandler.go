@@ -5,7 +5,10 @@ import (
 	"OpenStreetmapRouting/dijkstra"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"math"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/sirupsen/logrus"
@@ -26,7 +29,7 @@ func (s *Server) RouteAreaHandler(w http.ResponseWriter, r *http.Request) {
 
 	edgeList := make([]*data.Edge, 0)
 
-	//get all edges that reach come from these nodes
+	//get all edges that come from these nodes
 	for _, node := range nodeList {
 		nodeID := node.ID
 		edgeBegin := s.graph.Offset[nodeID]
@@ -53,7 +56,97 @@ func (s *Server) RouteAreaHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func RouteHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GetNearestNode(w http.ResponseWriter, r *http.Request) {
+
+	vars := r.URL.Query()
+
+	latStr, ok := vars["startlat"]
+	lonStr, ok2 := vars["startlon"]
+
+	if ok == false || ok2 == false {
+		logrus.Warnf("invalid input %s,%s", latStr, lonStr)
+		http.Error(w, "invalid query parameters", 400)
+		return
+	}
+
+	lat, _ := strconv.ParseFloat(latStr[0], 64)
+	lon, _ := strconv.ParseFloat(lonStr[0], 64)
+
+	node := s.graph.Grid.FindNextNode(lat, lon, false)
+
+	jsonData, err := json.Marshal(node)
+
+	if err != nil || jsonData == nil {
+
+		logrus.Error(err)
+		http.Error(w, "no area available", 500)
+	}
+
+	w.Write(jsonData)
+
+}
+
+// RouteAreaReachableHandler take an area as argument and return all edges in this area red:unreachable, blue:reachable nodes
+func (s *Server) RouteAreaReachableHandler(w http.ResponseWriter, r *http.Request) {
+
+	ne, sw, err := GetArea(r)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+	}
+	nodeList := s.graph.Grid.GetNodesInArea(ne, sw)
+
+	edgeList := make([]*data.Edge, 0)
+
+	start, err := GetStart(r)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		logrus.Debug(start)
+	}
+
+	startNode := s.graph.Grid.FindNextNode(start.Lat, start.Lon, false)
+
+	edgesCosts, err := dijkstra.CalcDijkstraToMany(s.graph, startNode)
+
+	//get all edges that come from these nodes
+	for _, node := range nodeList {
+		nodeID := node.ID
+		edgeBegin := s.graph.Offset[nodeID]
+		edgeEnd := s.graph.Offset[nodeID+1]
+
+		for i := edgeBegin; i < edgeEnd; i++ {
+
+			edgeList = append(edgeList, &s.graph.Edges[i])
+
+		}
+	}
+
+	areaGetReachable, areaGetUnreachable := data.ConvertAreaToJSONReachable(edgeList, s.graph, edgesCosts)
+
+	//getmax edgecost
+	var max int64 = -1
+	for _, edge := range edgesCosts {
+		if edge.Cost > max && edge.Cost != math.MaxInt64 {
+			max = edge.Cost
+		}
+	}
+
+	logrus.Debug(max)
+
+	areaGet := [2]data.GeoJSONArea{areaGetReachable, areaGetUnreachable}
+
+	jsonData, err := json.Marshal(areaGet)
+
+	if err != nil || jsonData == nil {
+
+		logrus.Error(err)
+		http.Error(w, "no area available", 500)
+	}
+
+	w.Write(jsonData)
+
+}
+
+func (s *Server) RouteHandler(w http.ResponseWriter, r *http.Request) {
 
 	vars := r.URL.Query()
 
@@ -84,7 +177,7 @@ func RouteHandler(w http.ResponseWriter, r *http.Request) {
 
 	// send a dijkstra request
 
-	route, err := dijkstra.GetRoute(start, end)
+	route, err := dijkstra.GetRoute(s.graph, start, end)
 
 	if err != nil {
 		logrus.Error(err)
@@ -117,39 +210,35 @@ func (s *Server) RouteStationHandler(w http.ResponseWriter, r *http.Request) {
 
 	vars := r.URL.Query()
 
-	startLatStr, ok := vars["startlat"]
-	startLonStr, ok2 := vars["startlon"]
-
-	if ok == false || ok2 == false {
-		logrus.Warnf("invalid input %s,%s", startLatStr, startLonStr)
-		http.Error(w, "invalid query parameters", 400)
-		return
-	}
-	endLatStr, ok := vars["endlat"]
-	endLonStr, ok2 := vars["endlon"]
-
-	if ok == false || ok2 == false {
-		http.Error(w, "invalid query parameters", 400)
+	start, err := GetStart(r)
+	if err != nil {
+		logrus.Warnf("invalid start: %s", err)
+		http.Error(w, err.Error(), 400)
 		return
 	}
 
-	rangeKmStr, ok := vars["rangeKm"]
+	endLat, err := parseCoord(vars, "endlat")
 
-	if ok == false {
-		http.Error(w, "invalid query parameters", 400)
+	if err != nil {
+		logrus.Warnf("invalid query parameter: %s", err)
+		http.Error(w, err.Error(), 400)
 		return
 	}
 
-	startLat, _ := strconv.ParseFloat(startLatStr[0], 64)
-	startLon, _ := strconv.ParseFloat(startLonStr[0], 64)
-
-	endLat, _ := strconv.ParseFloat(endLatStr[0], 64)
-	endLon, _ := strconv.ParseFloat(endLonStr[0], 64)
-
-	rangeKm, _ := strconv.ParseFloat(rangeKmStr[0], 64)
-
-	start := data.Coordinate{Lat: startLat, Lon: startLon}
+	endLon, err := parseCoord(vars, "endlon")
+	if err != nil {
+		logrus.Warnf("invalid query parameter: %s", err)
+		http.Error(w, err.Error(), 400)
+		return
+	}
 	end := data.Coordinate{Lat: endLat, Lon: endLon}
+
+	rangeKm, err := parseCoord(vars, "rangeKm")
+	if err != nil {
+		logrus.Warnf("invalid query parameter: %s", err)
+		http.Error(w, err.Error(), 400)
+		return
+	}
 
 	// send a dijkstra request
 
@@ -177,32 +266,62 @@ func (s *Server) RouteStationHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(routeRaw)
 }
 
+func parseCoord(vars url.Values, varName string) (float64, error) {
+
+	varStr, ok := vars[varName]
+
+	if ok == false {
+		errText := fmt.Sprintf("variable: %varStr doesn't exist", varName)
+		return math.NaN(), errors.New(errText)
+	}
+
+	varFloat, err := strconv.ParseFloat(varStr[0], 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return varFloat, nil
+
+}
+
+func GetStart(r *http.Request) (data.Coordinate, error) {
+
+	vars := r.URL.Query()
+
+	startLat, err := parseCoord(vars, "startlat")
+	if err != nil {
+		return data.Coordinate{}, err
+	}
+	startLon, err := parseCoord(vars, "startlat")
+	if err != nil {
+		return data.Coordinate{}, err
+	}
+
+	start := data.Coordinate{Lat: startLat, Lon: startLon}
+	return start, nil
+
+}
+
 func GetArea(r *http.Request) (ne data.Coordinate, sw data.Coordinate, err error) {
 	vars := r.URL.Query()
 
-	neLatStr, ok := vars["nelat"]
-	neLonStr, ok2 := vars["nelon"]
-
-	if ok == false || ok2 == false {
-		logrus.Warnf("invalid input %s,%s", neLatStr, neLonStr)
-		err = errors.New("invalid query parameters")
+	neLon, err := parseCoord(vars, "nelon")
+	if err != nil {
 		return
-
 	}
-	swLatStr, ok := vars["swlat"]
-	swLonStr, ok2 := vars["swlon"]
-
-	if ok == false || ok2 == false {
-		err = errors.New("invalid query parameters")
+	neLat, err := parseCoord(vars, "nelat")
+	if err != nil {
 		return
-
 	}
 
-	neLat, _ := strconv.ParseFloat(neLatStr[0], 64)
-	neLon, _ := strconv.ParseFloat(neLonStr[0], 64)
-
-	swLat, _ := strconv.ParseFloat(swLatStr[0], 64)
-	swLon, _ := strconv.ParseFloat(swLonStr[0], 64)
+	swLon, err := parseCoord(vars, "nswlon")
+	if err != nil {
+		return
+	}
+	swLat, err := parseCoord(vars, "swlat")
+	if err != nil {
+		return
+	}
 
 	ne = data.Coordinate{Lat: neLat, Lon: neLon}
 	sw = data.Coordinate{Lat: swLat, Lon: swLon}

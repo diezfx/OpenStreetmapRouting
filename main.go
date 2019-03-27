@@ -5,10 +5,11 @@ import (
 	"OpenStreetmapRouting/controller"
 	"OpenStreetmapRouting/data"
 	"OpenStreetmapRouting/parsing"
-	colorable "github.com/mattn/go-colorable"
 	"time"
 
-	log "github.com/sirupsen/logrus"
+	colorable "github.com/mattn/go-colorable"
+
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -16,63 +17,63 @@ func main() {
 	start := time.Now()
 	conf := config.LoadConfig("res/config.yaml")
 
-	initLogger()
+	initlogger()
 
-	graph := InitGraphProd(conf)
-	stations := data.InitGraphProdWithStations(graph, conf)
+	graph, stations := initGraphProd(conf)
 
 	// init grid for stations
-	stationsGrid := InitStationsGrid(stations, conf)
+	stationsGrid := initStationsGrid(stations, conf)
 
-	log.Info("Ready!!")
+	logrus.Info("Ready")
 	elapsed := time.Since(start)
-	log.Infof("loading took %s", elapsed)
+	logrus.Infof("loading took %s", elapsed)
 
 	controller.Start(graph, stations, stationsGrid)
 }
 
-func initLogger() {
+func initlogger() {
 	conf := config.GetConfig()
 
-	var logLevel log.Level
+	var logrusLevel logrus.Level
 	switch conf.LogLevel {
 	case 1:
-		logLevel = log.InfoLevel
+		logrusLevel = logrus.InfoLevel
 	case 2:
-		logLevel = log.WarnLevel
+		logrusLevel = logrus.WarnLevel
 	case 3:
-		logLevel = log.ErrorLevel
+		logrusLevel = logrus.ErrorLevel
 	default:
-		logLevel = log.TraceLevel
+		logrusLevel = logrus.TraceLevel
 	}
 
-	log.SetReportCaller(true)
-	log.SetFormatter(&log.TextFormatter{ForceColors: true})
-	log.SetOutput(colorable.NewColorableStdout())
+	logrus.SetReportCaller(true)
+	logrus.SetFormatter(&logrus.TextFormatter{ForceColors: true})
+	logrus.SetOutput(colorable.NewColorableStdout())
 
-	log.SetLevel(logLevel)
+	logrus.SetLevel(logrusLevel)
 
 }
 
 //InitGraphProd calculates the offsetlist and creates the grid for the given graph
-func InitGraphProd(conf *config.Config) *data.GraphProd {
+func initGraphProd(conf *config.Config) (*data.GraphProd, *data.GasStations) {
 
 	graphData := parsing.ParseOrLoadGraph(conf)
 
 	g := data.InitGraphProd(graphData, conf)
+	grid := data.Grid{}
+	grid.InitGrid(g.Nodes, conf)
+	logrus.Debugf("Grid initialized")
+	g.Grid = grid
 
-	return g
+	stations := data.InitGraphProdWithStations(g, conf)
+
+	return g, stations
 
 }
 
-func InitStationsGrid(stations *data.GasStations, conf *config.Config) *data.Grid {
+func initStationsGrid(stations *data.GasStations, conf *config.Config) *data.Grid {
 	stationsGrid := data.Grid{}
-	stationList := make([]data.Node, len(stations.Stations))
-	i := 0
-	for _, value := range stations.Stations {
-		stationList[i] = value
-		i++
-	}
+	stationList := stations.GetStationsAsList()
 	stationsGrid.InitGrid(stationList, conf)
 	return &stationsGrid
 }

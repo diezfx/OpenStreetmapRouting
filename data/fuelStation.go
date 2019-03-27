@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+
+	"github.com/sirupsen/logrus"
 )
 
 type FuelStationGet struct {
@@ -17,6 +19,17 @@ func GetFuelStations() *GasStations {
 	stations.LoadInfo(config.GetConfig())
 
 	return stations
+}
+
+func (s *GasStations) GetStationsAsList() []Node {
+	stationList := make([]Node, len(s.Stations))
+	i := 0
+	for _, value := range s.Stations {
+		stationList[i] = value
+		i++
+	}
+	return stationList
+
 }
 
 func (s *GasStations) SetStations(stations map[int64]Node) {
@@ -50,5 +63,19 @@ func (s *GasStations) ConverToGetObject() *FuelStationGet {
 	}
 
 	return &stationJSONGet
+
+}
+
+func (g *GasStations) WriteFile(config *config.Config) {
+	var encodedStations []byte
+
+	jsonGraph, err := json.Marshal(g)
+	encodedStations = jsonGraph
+	if err != nil {
+		logrus.Fatal(err)
+		return
+	}
+
+	ioutil.WriteFile(config.FuelStationsFilename, encodedStations, 0644)
 
 }

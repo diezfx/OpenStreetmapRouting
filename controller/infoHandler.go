@@ -14,7 +14,7 @@ func InfoHandler(w http.ResponseWriter, r *http.Request) {
 
 	infoGet := info.ConverToGetObject()
 
-	infoJson, err := json.Marshal(infoGet)
+	infoJSON, err := json.Marshal(infoGet)
 
 	if err != nil || info == nil {
 
@@ -22,6 +22,6 @@ func InfoHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "no info available", 400)
 	}
 
-	w.Write(infoJson)
+	w.Write(infoJSON)
 
 }

@@ -1,5 +1,9 @@
 package data
 
+import (
+	"math"
+)
+
 // GetRoute reduced data for drawing
 type GetRoute struct {
 	Route GeoJSONRoute
@@ -28,7 +32,7 @@ type NodeRoute struct {
 }
 
 // ConvertToJSON takes the nodeRoute and returns a geojson linestring
-func (nr *NodeRoute) ConvertToJSON() *GetRoute {
+func (nr *NodeRoute) ConvertToJSON() GetRoute {
 
 	getRoute := GetRoute{Route: GeoJSONRoute{Type: "LineString", Coordinates: make([][]float64, 0)}, TotalCost: nr.TotalCost}
 
@@ -38,12 +42,12 @@ func (nr *NodeRoute) ConvertToJSON() *GetRoute {
 
 	}
 
-	return &getRoute
+	return getRoute
 
 }
 
 // ConvertAreaToJSON takes all route in an area and converts them to multilinestring geojson format
-func ConvertAreaToJSON(route []*Edge, g *GraphProd) *GeoJSONArea {
+func ConvertAreaToJSON(route []*Edge, g *GraphProd) GeoJSONArea {
 
 	getArea := GeoJSONArea{Type: "MultiLineString", Coordinates: make([][][]float64, 0)}
 
@@ -55,7 +59,33 @@ func ConvertAreaToJSON(route []*Edge, g *GraphProd) *GeoJSONArea {
 
 	}
 
-	return &getArea
+	return getArea
+
+}
+
+// ConvertAreaToJSONReachable takes all route in an area and converts them to multilinestring geojson format
+// blue means reachable, red unreachable
+// returns 2 coordinate fiels, first reachable then unreachable
+func ConvertAreaToJSONReachable(route []*Edge, g *GraphProd, edgesCosts []Edge) (getAreaReachable GeoJSONArea, getAreaUnreachable GeoJSONArea) {
+
+	getAreaReachable = GeoJSONArea{Type: "MultiLineString", Coordinates: make([][][]float64, 0), Style: &Style{Fill: "blue"}}
+	getAreaUnreachable = GeoJSONArea{Type: "MultiLineString", Coordinates: make([][][]float64, 0), Style: &Style{Fill: "#ff0043"}}
+
+	for _, edge := range route {
+
+		miniRoute := [][]float64{[]float64{g.Nodes[edge.Start].Lon, g.Nodes[edge.Start].Lat},
+			[]float64{g.Nodes[edge.End].Lon, g.Nodes[edge.End].Lat}}
+
+		if edgesCosts[edge.End].Cost >= math.MaxInt64 {
+			getAreaUnreachable.Coordinates = append(getAreaUnreachable.Coordinates, miniRoute)
+
+		} else {
+			getAreaReachable.Coordinates = append(getAreaReachable.Coordinates, miniRoute)
+		}
+
+	}
+
+	return getAreaReachable, getAreaUnreachable
 
 }
 
@@ -65,8 +95,13 @@ type GeoJSONRoute struct {
 	Coordinates [][]float64 `json:"coordinates"`
 }
 
+type Style struct {
+	Fill string `json:"color,omitempty"`
+}
+
 // GeoJSONArea all route in area in geojson format
 type GeoJSONArea struct {
 	Type        string        `json:"type"`
 	Coordinates [][][]float64 `json:"coordinates"`
+	*Style      `json:"style,omitempty"`
 }

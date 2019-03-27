@@ -32,8 +32,8 @@ type DataHandlerStep2 struct {
 
 func (d *DataHandlerStep1) InitGraph() {
 
-	nodeList := make([]data.Node, 0, 4400000)
-	edgeList := make([]data.Edge, 0, 7500000)
+	nodeList := make([]data.Node, 0)
+	edgeList := make([]data.Edge, 0)
 	info := data.MetaInfo{RoadTypes: make(map[string]int, 0)}
 
 	gasList := data.GasStations{Stations: make(map[int64]data.Node, 0)}
@@ -259,8 +259,8 @@ func parseSpeed(way gosmparse.Way) float64 {
 func stringToFloat(speedS string) (float64, error) {
 	speed, err := strconv.Atoi(speedS)
 	/*if err != nil {
-		fmt.Println(err)
+	fmt.Println(err)
+	*/
 
-	}*/
 	return float64(speed), err
 }

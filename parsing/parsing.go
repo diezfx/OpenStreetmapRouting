@@ -35,14 +35,14 @@ func loadDec() *gosmparse.Decoder {
 	return dec
 }
 
-//Parse parses the graph to our graph format
+//parse parses the graph to our graph format
+// step1: saving all "roadlike" edges to an array
+// step2: saving the nodes that are represented through edges
 func parse() (*data.Graph, *data.MetaInfo) {
 	log.Infof("Beginne")
 	start := time.Now()
 
 	config := config.GetConfig()
-
-	log.Debug(config)
 
 	DataHandler := DataHandlerStep1{}
 	DataHandler.InitGraph()
@@ -67,8 +67,9 @@ func parse() (*data.Graph, *data.MetaInfo) {
 
 	log.Info("Finished parsing.")
 	log.WithFields(log.Fields{
-		"Node count": len(DataHandler2.Graph.Nodes),
-		"Edge count": len(DataHandler2.Graph.Edges)}).Info("Graph infos")
+		"Node count":       len(DataHandler2.Graph.Nodes),
+		"Edge count":       len(DataHandler2.Graph.Edges),
+		"GasStation count": len(DataHandler2.GasStationList.Stations)}).Info("Graph infos")
 
 	/////////////////////////////////////
 	// Converting parsed graph to better nodeIds starting from 0
@@ -92,6 +93,8 @@ func parse() (*data.Graph, *data.MetaInfo) {
 
 }
 
+//ParseOrLoadGraph decides if an already processed graph should be loaded or start reading raw Osm data
+// osmparse=1 process raw data again; 0 use already processed stuff
 func ParseOrLoadGraph(config *config.Config) *data.Graph {
 
 	var graphData *data.Graph
