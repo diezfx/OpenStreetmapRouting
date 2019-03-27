@@ -13,8 +13,7 @@ import (
 )
 
 // instance that is usable by dijkstra
-//todo look at DI
-var graphProd *GraphProd
+//todo DI
 var info *MetaInfo
 
 // GraphRaw contains the node,edge lists and additionaly a map for the old/new id mapping
@@ -242,8 +241,6 @@ func InitGraphProd(graphData *Graph, conf *config.Config) *GraphProd {
 	grid.InitGrid(g.Nodes, conf)
 
 	g.Grid = grid
-
-	graphProd = g
 
 	return g
 

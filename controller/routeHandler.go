@@ -60,26 +60,29 @@ func (s *Server) GetNearestNode(w http.ResponseWriter, r *http.Request) {
 
 	vars := r.URL.Query()
 
-	latStr, ok := vars["startlat"]
-	lonStr, ok2 := vars["startlon"]
+	lat, err := parseCoord(vars, "lat")
 
-	if ok == false || ok2 == false {
-		logrus.Warnf("invalid input %s,%s", latStr, lonStr)
-		http.Error(w, "invalid query parameters", 400)
+	if err != nil {
+		logrus.Error(err)
+		http.Error(w, "bad input", 400)
 		return
 	}
-
-	lat, _ := strconv.ParseFloat(latStr[0], 64)
-	lon, _ := strconv.ParseFloat(lonStr[0], 64)
+	lon, err := parseCoord(vars, "lon")
+	if err != nil {
+		logrus.Error(err)
+		http.Error(w, "bad input", 400)
+		return
+	}
 
 	node := s.graph.Grid.FindNextNode(lat, lon, false)
 
 	jsonData, err := json.Marshal(node)
 
-	if err != nil || jsonData == nil {
+	if err != nil {
 
 		logrus.Error(err)
-		http.Error(w, "no area available", 500)
+		http.Error(w, "oops", 500)
+		return
 	}
 
 	w.Write(jsonData)
@@ -91,7 +94,9 @@ func (s *Server) RouteAreaReachableHandler(w http.ResponseWriter, r *http.Reques
 
 	ne, sw, err := GetArea(r)
 	if err != nil {
+		logrus.Error(err)
 		http.Error(w, err.Error(), 400)
+		return
 	}
 	nodeList := s.graph.Grid.GetNodesInArea(ne, sw)
 
@@ -99,13 +104,15 @@ func (s *Server) RouteAreaReachableHandler(w http.ResponseWriter, r *http.Reques
 
 	start, err := GetStart(r)
 	if err != nil {
+		logrus.Error(err)
 		http.Error(w, err.Error(), 400)
 		logrus.Debug(start)
+		return
 	}
 
 	startNode := s.graph.Grid.FindNextNode(start.Lat, start.Lon, false)
 
-	edgesCosts, err := dijkstra.CalcDijkstraToMany(s.graph, startNode)
+	edgesCosts, err := dijkstra.CalcDijkstraToMany(s.graph, *startNode)
 
 	//get all edges that come from these nodes
 	for _, node := range nodeList {
@@ -121,16 +128,6 @@ func (s *Server) RouteAreaReachableHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	areaGetReachable, areaGetUnreachable := data.ConvertAreaToJSONReachable(edgeList, s.graph, edgesCosts)
-
-	//getmax edgecost
-	var max int64 = -1
-	for _, edge := range edgesCosts {
-		if edge.Cost > max && edge.Cost != math.MaxInt64 {
-			max = edge.Cost
-		}
-	}
-
-	logrus.Debug(max)
 
 	areaGet := [2]data.GeoJSONArea{areaGetReachable, areaGetUnreachable}
 
@@ -150,29 +147,27 @@ func (s *Server) RouteHandler(w http.ResponseWriter, r *http.Request) {
 
 	vars := r.URL.Query()
 
-	startLatStr, ok := vars["startlat"]
-	startLonStr, ok2 := vars["startlon"]
-
-	if ok == false || ok2 == false {
-		logrus.Warnf("invalid input %s,%s", startLatStr, startLonStr)
-		http.Error(w, "invalid query parameters", 400)
-		return
-	}
-	endLatStr, ok := vars["endlat"]
-	endLonStr, ok2 := vars["endlon"]
-
-	if ok == false || ok2 == false {
-		http.Error(w, "invalid query parameters", 400)
+	start, err := GetStart(r)
+	if err != nil {
+		logrus.Warnf("invalid start: %s", err)
+		http.Error(w, err.Error(), 400)
 		return
 	}
 
-	startLat, _ := strconv.ParseFloat(startLatStr[0], 64)
-	startLon, _ := strconv.ParseFloat(startLonStr[0], 64)
+	endLat, err := parseCoord(vars, "endlat")
 
-	endLat, _ := strconv.ParseFloat(endLatStr[0], 64)
-	endLon, _ := strconv.ParseFloat(endLonStr[0], 64)
+	if err != nil {
+		logrus.Warnf("invalid query parameter: %s", err)
+		http.Error(w, err.Error(), 400)
+		return
+	}
 
-	start := data.Coordinate{Lat: startLat, Lon: startLon}
+	endLon, err := parseCoord(vars, "endlon")
+	if err != nil {
+		logrus.Warnf("invalid query parameter: %s", err)
+		http.Error(w, err.Error(), 400)
+		return
+	}
 	end := data.Coordinate{Lat: endLat, Lon: endLon}
 
 	// send a dijkstra request
@@ -187,7 +182,6 @@ func (s *Server) RouteHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 
 		w.Write(mesB)
-
 		return
 	}
 
@@ -256,7 +250,6 @@ func (s *Server) RouteStationHandler(w http.ResponseWriter, r *http.Request) {
 
 	routeRaw, err := json.Marshal(getRouteWithStations)
 
-	// TODO change to simplified data
 	if err != nil {
 		logrus.Error(err)
 		http.Error(w, "error ", 500)
@@ -271,7 +264,7 @@ func parseCoord(vars url.Values, varName string) (float64, error) {
 	varStr, ok := vars[varName]
 
 	if ok == false {
-		errText := fmt.Sprintf("variable: %varStr doesn't exist", varName)
+		errText := fmt.Sprintf("variable: %s doesn't exist", varName)
 		return math.NaN(), errors.New(errText)
 	}
 
@@ -292,7 +285,7 @@ func GetStart(r *http.Request) (data.Coordinate, error) {
 	if err != nil {
 		return data.Coordinate{}, err
 	}
-	startLon, err := parseCoord(vars, "startlat")
+	startLon, err := parseCoord(vars, "startlon")
 	if err != nil {
 		return data.Coordinate{}, err
 	}
@@ -314,7 +307,7 @@ func GetArea(r *http.Request) (ne data.Coordinate, sw data.Coordinate, err error
 		return
 	}
 
-	swLon, err := parseCoord(vars, "nswlon")
+	swLon, err := parseCoord(vars, "swlon")
 	if err != nil {
 		return
 	}

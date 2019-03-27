@@ -33,9 +33,8 @@ func TestStationsReachable(t *testing.T) {
 	stations := data.GetFuelStations()
 
 	errorCount := 0
-
 	startNode := graph.Grid.FindNextNode(48.739889600673365, 9.105295872250478, false)
-	goalCosts, _ := dijkstra.CalcDijkstraToMany(graph, startNode)
+	goalCosts, _ := dijkstra.CalcDijkstraToMany(graph, *startNode)
 
 	for _, station := range stations.Stations {
 

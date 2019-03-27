@@ -32,7 +32,7 @@ func TestStationDijkstra(t *testing.T) {
 
 	Init(nodesSD, edgesSD)
 
-	route, visitedStations, err := dijkstra.CalcStationDijkstra(graph, &stations, &graph.Nodes[0], &graph.Nodes[5], 8.0)
+	route, visitedStations, err := dijkstra.CalcStationDijkstraSnapshots(graph, &stations, graph.Nodes[0], graph.Nodes[5], 8.0)
 
 	if route.TotalCost != 12 {
 		t.Errorf("Expected cost of %d got %d", 12, route.TotalCost)
@@ -46,12 +46,12 @@ func TestStationDijkstra(t *testing.T) {
 		t.Errorf("Expected a way of length %d got %d", 8, len(route.Route))
 	}
 
-	if visitedStations[0].ID != stations.Stations[6].ID {
-		t.Errorf("Expected station %d got %d", stations.Stations[0].ID, visitedStations[0].ID)
+	if visitedStations[0].ID != stations.Stations[7].ID {
+		t.Errorf("Expected station %d got %d", stations.Stations[7].ID, visitedStations[0].ID)
 	}
 
 	// test direct route
-	route, visitedStations, err = dijkstra.CalcStationDijkstra(graph, &stations, &graph.Nodes[0], &graph.Nodes[5], 16)
+	route, visitedStations, err = dijkstra.CalcStationDijkstra(graph, &stations, graph.Nodes[0], graph.Nodes[5], 16)
 
 	if route.TotalCost != 10 {
 		t.Errorf("Expected cost of %d got %d", 12, route.TotalCost)
@@ -65,7 +65,7 @@ func TestStationDijkstra(t *testing.T) {
 		t.Errorf("Expected a way of length %d got %d", 6, len(route.Route))
 	}
 
-	if len(visitedStations) > 0 {
+	if len(visitedStations) != 0 {
 		t.Errorf("Expected #station %d got %d", 0, len(visitedStations))
 	}
 

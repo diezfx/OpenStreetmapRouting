@@ -68,8 +68,8 @@ func ConvertAreaToJSON(route []*Edge, g *GraphProd) GeoJSONArea {
 // returns 2 coordinate fiels, first reachable then unreachable
 func ConvertAreaToJSONReachable(route []*Edge, g *GraphProd, edgesCosts []Edge) (getAreaReachable GeoJSONArea, getAreaUnreachable GeoJSONArea) {
 
-	getAreaReachable = GeoJSONArea{Type: "MultiLineString", Coordinates: make([][][]float64, 0), Style: &Style{Fill: "blue"}}
-	getAreaUnreachable = GeoJSONArea{Type: "MultiLineString", Coordinates: make([][][]float64, 0), Style: &Style{Fill: "#ff0043"}}
+	getAreaReachable = GeoJSONArea{Type: "MultiLineString", Coordinates: make([][][]float64, 0), Style: &Style{Color: "blue"}}
+	getAreaUnreachable = GeoJSONArea{Type: "MultiLineString", Coordinates: make([][][]float64, 0), Style: &Style{Color: "#ff0043"}}
 
 	for _, edge := range route {
 
@@ -96,7 +96,7 @@ type GeoJSONRoute struct {
 }
 
 type Style struct {
-	Fill string `json:"color,omitempty"`
+	Color string `json:"color,omitempty"`
 }
 
 // GeoJSONArea all route in area in geojson format

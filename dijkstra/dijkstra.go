@@ -24,7 +24,7 @@ func GetRoute(graph *data.GraphProd, start data.Coordinate, end data.Coordinate)
 
 	logrus.Infof("Dijkstra started")
 
-	result, err := CalcDijkstra(graph, startNode, endNode)
+	result, err := CalcDijkstra(graph, *startNode, *endNode)
 	dijkstraTime := time.Since(startTime) - gridTime
 	endTime := time.Since(startTime)
 	logrus.WithFields(logrus.Fields{
@@ -38,7 +38,7 @@ func GetRoute(graph *data.GraphProd, start data.Coordinate, end data.Coordinate)
 
 // CalcDijkstra takes a starting node and returns all edges on the way
 // uses edges for the overview of cost and the way to the previous node
-func CalcDijkstra(g *data.GraphProd, start *data.Node, target *data.Node) (*data.NodeRoute, error) {
+func CalcDijkstra(g *data.GraphProd, start data.Node, target data.Node) (*data.NodeRoute, error) {
 
 	pq := make(data.PriorityQueue, 0)
 
@@ -111,7 +111,7 @@ func CalcDijkstra(g *data.GraphProd, start *data.Node, target *data.Node) (*data
 
 // CalcDijkstraToMany takes a starting node and returns all edges on the way
 // uses edges for the overview of cost and the way to the previous node
-func CalcDijkstraToMany(g *data.GraphProd, start *data.Node) ([]data.Edge, error) {
+func CalcDijkstraToMany(g *data.GraphProd, start data.Node) ([]data.Edge, error) {
 
 	pq := make(data.PriorityQueue, 0, 10)
 
@@ -164,7 +164,7 @@ func CalcDijkstraToMany(g *data.GraphProd, start *data.Node) ([]data.Edge, error
 }
 
 // lists all nodes from the target to goal
-func findWayToGoal(start, target *data.Node, g *data.GraphProd, prevs []data.Edge) (*data.NodeRoute, error) {
+func findWayToGoal(start, target data.Node, g *data.GraphProd, prevs []data.Edge) (*data.NodeRoute, error) {
 	// add all nodes that are on the optimal way
 
 	optWay := make([]*data.Node, 0)

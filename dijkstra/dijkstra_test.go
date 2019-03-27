@@ -48,7 +48,7 @@ func TestDijkstraCostCalc(t *testing.T) {
 
 	Init(nodes, edges)
 
-	route, _ := dijkstra.CalcDijkstra(graph, &graph.Nodes[0], &graph.Nodes[2])
+	route, _ := dijkstra.CalcDijkstra(graph, graph.Nodes[0], graph.Nodes[2])
 
 	if route.TotalCost != 8 {
 		t.Errorf("Expected cost of %d got %d", 8, route.TotalCost)
@@ -58,7 +58,7 @@ func TestDijkstraCostCalc(t *testing.T) {
 		t.Errorf("Expected a way of length %d got %d", 2, len(route.Route))
 	}
 
-	route, _ = dijkstra.CalcDijkstra(graph, &graph.Nodes[0], &graph.Nodes[3])
+	route, _ = dijkstra.CalcDijkstra(graph, graph.Nodes[0], graph.Nodes[3])
 
 	if route.TotalCost != 8 {
 		t.Errorf("Expected cost of %d got %d", 8, route.TotalCost)
@@ -67,7 +67,7 @@ func TestDijkstraCostCalc(t *testing.T) {
 		t.Errorf("Expected a way of length %d got %d", 3, len(route.Route))
 	}
 
-	route, _ = dijkstra.CalcDijkstra(graph, &graph.Nodes[2], &graph.Nodes[6])
+	route, _ = dijkstra.CalcDijkstra(graph, graph.Nodes[2], graph.Nodes[6])
 
 	if len(route.Route) != 4 {
 		t.Errorf("Expected a way of length %d got %d", 4, len(route.Route))

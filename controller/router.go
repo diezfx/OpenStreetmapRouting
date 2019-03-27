@@ -27,6 +27,7 @@ func Start(graph *data.GraphProd, stations *data.GasStations, stationsGrid *data
 
 	s.router.HandleFunc("/", HomeHandler)
 	s.router.HandleFunc("/v1/route", s.RouteHandler)
+	s.router.HandleFunc("/v1/route/node", s.GetNearestNode)
 	s.router.HandleFunc("/v1/routewithstation", s.RouteStationHandler)
 	s.router.HandleFunc("/v1/route/area", s.RouteAreaHandler)
 	s.router.HandleFunc("/v1/route/areareachable", s.RouteAreaReachableHandler)
@@ -36,5 +37,5 @@ func Start(graph *data.GraphProd, stations *data.GasStations, stationsGrid *data
 	s.router.HandleFunc("/v1/reachablestations", s.ReachableStationsHandler())
 
 	logrus.Infof("Server started at localhost:8000 ")
-	http.ListenAndServe("localhost:4501", handlers.CORS()(s.router))
+	http.ListenAndServe("localhost:8000", handlers.CORS()(s.router))
 }
