@@ -2,3 +2,4 @@
 *.bin
 vendor/*
 *.pdf
+res/*.json

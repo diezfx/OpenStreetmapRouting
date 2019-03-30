@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"OpenStreetmapRouting/config"
-	"OpenStreetmapRouting/data"
+	"github.com/diezfx/OpenStreetmapRouting/config"
+	"github.com/diezfx/OpenStreetmapRouting/data"
 
 	"net/http"
 

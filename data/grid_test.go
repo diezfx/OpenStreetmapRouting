@@ -1,7 +1,7 @@
 package data_test
 
 import (
-	"OpenStreetmapRouting/data"
+	"github.com/diezfx/OpenStreetmapRouting/data"
 	"testing"
 )
 

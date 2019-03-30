@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"OpenStreetmapRouting/data"
+	"github.com/diezfx/OpenStreetmapRouting/data"
 	"encoding/json"
 	"net/http"
 

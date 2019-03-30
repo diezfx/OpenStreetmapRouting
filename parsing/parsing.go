@@ -1,8 +1,8 @@
 package parsing
 
 import (
-	"OpenStreetmapRouting/config"
-	"OpenStreetmapRouting/data"
+	"github.com/diezfx/OpenStreetmapRouting/config"
+	"github.com/diezfx/OpenStreetmapRouting/data"
 	"io/ioutil"
 	"net/http"
 	"os"

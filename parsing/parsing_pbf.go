@@ -1,11 +1,12 @@
 package parsing
 
 import (
-	"OpenStreetmapRouting/data"
 	"fmt"
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/diezfx/OpenStreetmapRouting/data"
 
 	"github.com/thomersch/gosmparse"
 )

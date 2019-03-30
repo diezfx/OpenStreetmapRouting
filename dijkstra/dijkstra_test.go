@@ -1,9 +1,9 @@
 package dijkstra_test
 
 import (
-	"OpenStreetmapRouting/config"
-	"OpenStreetmapRouting/data"
-	"OpenStreetmapRouting/dijkstra"
+	"github.com/diezfx/OpenStreetmapRouting/config"
+	"github.com/diezfx/OpenStreetmapRouting/data"
+	"github.com/diezfx/OpenStreetmapRouting/dijkstra"
 	"testing"
 
 	"github.com/sirupsen/logrus"

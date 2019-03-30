@@ -1,7 +1,7 @@
 package dijkstra
 
 import (
-	"OpenStreetmapRouting/data"
+	"github.com/diezfx/OpenStreetmapRouting/data"
 	"container/heap"
 	"errors"
 	"math"

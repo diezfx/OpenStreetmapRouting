@@ -1,10 +1,10 @@
 package main
 
 import (
-	"OpenStreetmapRouting/config"
-	"OpenStreetmapRouting/controller"
-	"OpenStreetmapRouting/data"
-	"OpenStreetmapRouting/parsing"
+	"github.com/diezfx/OpenStreetmapRouting/config"
+	"github.com/diezfx/OpenStreetmapRouting/controller"
+	"github.com/diezfx/OpenStreetmapRouting/data"
+	"github.com/diezfx/OpenStreetmapRouting/parsing"
 	"time"
 
 	colorable "github.com/mattn/go-colorable"

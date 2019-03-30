@@ -2,10 +2,10 @@
 package integrationTest
 
 import (
-	"OpenStreetmapRouting/config"
-	"OpenStreetmapRouting/data"
-	"OpenStreetmapRouting/dijkstra"
-	"OpenStreetmapRouting/parsing"
+	"github.com/diezfx/OpenStreetmapRouting/config"
+	"github.com/diezfx/OpenStreetmapRouting/data"
+	"github.com/diezfx/OpenStreetmapRouting/dijkstra"
+	"github.com/diezfx/OpenStreetmapRouting/parsing"
 	"math"
 	"os"
 	"testing"

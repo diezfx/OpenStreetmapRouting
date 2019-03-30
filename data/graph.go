@@ -1,7 +1,7 @@
 package data
 
 import (
-	"OpenStreetmapRouting/config"
+	"github.com/diezfx/OpenStreetmapRouting/config"
 
 	"encoding/json"
 	"io/ioutil"

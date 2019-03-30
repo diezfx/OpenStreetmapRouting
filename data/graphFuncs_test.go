@@ -1,9 +1,9 @@
 package data_test
 
 import (
-	"OpenStreetmapRouting/config"
-	"OpenStreetmapRouting/data"
-	"OpenStreetmapRouting/parsing"
+	"github.com/diezfx/OpenStreetmapRouting/config"
+	"github.com/diezfx/OpenStreetmapRouting/data"
+	"github.com/diezfx/OpenStreetmapRouting/parsing"
 	"os"
 	"testing"
 
