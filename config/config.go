@@ -25,6 +25,9 @@ type Config struct {
 
 	InfoFilename         string `yaml:"infoFilename"`
 	FuelStationsFilename string `yaml:"fuelStationsFilename"`
+
+	DijkstraMaxStations        int `yaml:"dijkstraMaxStations"`
+	DijkstraMaxstationsPerStep int `yaml:"dijkstraMaxStationsPerStep"`
 }
 
 //LoadConfig .

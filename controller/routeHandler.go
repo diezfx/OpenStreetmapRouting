@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"github.com/diezfx/OpenStreetmapRouting/data"
-	"github.com/diezfx/OpenStreetmapRouting/dijkstra"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,6 +8,9 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+
+	"github.com/diezfx/OpenStreetmapRouting/data"
+	"github.com/diezfx/OpenStreetmapRouting/dijkstra"
 
 	"github.com/sirupsen/logrus"
 )
@@ -236,7 +237,7 @@ func (s *Server) RouteStationHandler(w http.ResponseWriter, r *http.Request) {
 
 	// send a dijkstra request
 
-	route, stations, err := dijkstra.GetRouteWithStations(s.graph, s.stations, start, end, rangeKm)
+	route, stations, err := dijkstra.GetRouteWithStations(s.graph, s.stations, start, end, rangeKm, s.config)
 
 	if err != nil {
 		logrus.Error(err)

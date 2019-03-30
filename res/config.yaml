@@ -1,6 +1,5 @@
 #internet|local
 osmLocation: local 
-
  # "http://download.geofabrik.de/europe/germany-latest.osm.pbf
  # 
  #"http://download.geofabrik.de/europe/germany/baden-wuerttemberg-latest.osm.pbf"
@@ -25,3 +24,9 @@ gridYSize: 100
 
 infoFilename: "res/metaInfo.json"
 fuelStationsFilename: "res/fuelStations.json"
+
+
+# how many stations are visited at max
+dijkstraMaxStations: 20
+# how many stations are visited at max per step
+dijkstraMaxStationsPerStep: 2
