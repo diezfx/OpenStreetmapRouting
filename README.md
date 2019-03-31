@@ -1,21 +1,20 @@
 # Backend
 
+## Problemstellung:
+    Finde den kürzesten Weg unter der Einschränkung, dass ein Auto nur eine bestimmte Reichweite hat. Wird eine Tankstelle angefahren kann die Reichweite erneuert werden. Es sollen jedoch so wenig wie möglich Tankstellen verwendet werden.
+    -> Ziel:kürzeste Weg mit den wenigsten Tankstellen
+
 
 ## Installation
 Das Backend is in go geschrieben. Da Go modules benutzt wird, wird mindestens version 1.11 benötigt.
-Es sollte alle Abhängigkeiten automatisch herunterladen.
+Es sollte alle Abhängigkeiten automatisch herunterladen. 
+Für den ersten Durchgang muss osmParse=1 sein in der config, damit nicht eine nicht vorhandene vorbereitete Datei gesucht wird.
 Starten mit: go run main.go
 
-In der res/config.yaml kann die verwendete Datei angegben werden und eingestellt werden obs neu berechnet wird oder ein vorhander graph geladen wird.
+In der res/config.yaml kann die verwendete Datei angegben werden und eingestellt werden ob es neu berechnet wird oder ein vorhander graph geladen wird.
 
 
-localhost:8000
-
-
-
-Problemstellung:
-    Finde den kürzesten Weg unter der Einschränkung, dass ein Auto nur eine bestimmte Reichweite hat. Wird eine Tankstelle angefahren kann die Reichweite erneuert werden. Es sollen jedoch so wenig wie möglich Tankstellen verwendet werden.
-    -> Ziel:kürzeste Weg mit den wenigsten Tankstellen
+Die Anwendung ist erreichbar unter: localhost:8000
 
 
 

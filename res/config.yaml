@@ -7,7 +7,7 @@ osmFilename: "res/baden-wuerttemberg-latest.osm.pbf"
 
 # 1 parse the osm files and write to file for reuse
 # 0 use existing parsed data
-osmParse: 0
+osmParse: 1
 
 #json|protobuf are valid  (json not recommended)
 outputType: "protobuf"
