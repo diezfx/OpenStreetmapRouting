@@ -115,6 +115,13 @@ func (s *Server) RouteAreaReachableHandler(w http.ResponseWriter, r *http.Reques
 
 	edgesCosts, err := dijkstra.CalcDijkstraToMany(s.graph, *startNode)
 
+	rangeKm, err := parseCoord(r.URL.Query(), "rangeKm")
+	rangeCm := int64(rangeKm * 1000 * 100)
+
+	if err != nil || rangeKm <= 0 {
+		rangeCm = math.MaxInt64
+	}
+
 	//get all edges that come from these nodes
 	for _, node := range nodeList {
 		nodeID := node.ID
@@ -127,8 +134,7 @@ func (s *Server) RouteAreaReachableHandler(w http.ResponseWriter, r *http.Reques
 
 		}
 	}
-
-	areaGetReachable, areaGetUnreachable := data.ConvertAreaToJSONReachable(edgeList, s.graph, edgesCosts)
+	areaGetReachable, areaGetUnreachable := data.ConvertAreaToJSONReachable(edgeList, s.graph, edgesCosts, rangeCm)
 
 	areaGet := [2]data.GeoJSONArea{areaGetReachable, areaGetUnreachable}
 

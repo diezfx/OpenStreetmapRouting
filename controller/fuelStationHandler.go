@@ -1,10 +1,12 @@
 package controller
 
 import (
+	"encoding/json"
+	"math"
+	"net/http"
+
 	"github.com/diezfx/OpenStreetmapRouting/data"
 	"github.com/diezfx/OpenStreetmapRouting/dijkstra"
-	"encoding/json"
-	"net/http"
 
 	"github.com/sirupsen/logrus"
 )
@@ -56,7 +58,14 @@ func (s *Server) ReachableStationsHandler() http.HandlerFunc {
 			http.Error(w, "invalid query parameters", 400)
 		}
 
-		reachable, unreachable := dijkstra.StationsReachable(s.graph, start)
+		rangeKm, err := parseCoord(r.URL.Query(), "rangeKm")
+		rangeCm := int64(rangeKm * 1000 * 100)
+
+		if err != nil || rangeKm <= 0 {
+			rangeCm = math.MaxInt64
+		}
+
+		reachable, unreachable := dijkstra.StationsReachable(s.graph, start, rangeCm)
 
 		reachableGet := data.FuelStationGet{Stations: reachable}
 		unreachableGet := data.FuelStationGet{Stations: unreachable}

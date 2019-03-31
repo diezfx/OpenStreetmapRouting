@@ -82,7 +82,7 @@ func CalcStationDijkstra(g *data.GraphProd, gasStations *data.GasStations, start
 
 		} else {
 
-			minStation, err := getMinDistanceStation(g.Nodes, wayCostEdges, gasStations, start, target, rangeCm)
+			minStation, err := getMinDistanceStation(g.Nodes, wayCostEdges, gasStations, partialStart, target, rangeCm)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -112,12 +112,9 @@ func CalcStationDijkstra(g *data.GraphProd, gasStations *data.GasStations, start
 func CalcStationDijkstraSnapshots(g *data.GraphProd, gasStations *data.GasStations, start data.Node, target data.Node, rangeCm int64, config *config.Config) (route *data.NodeRoute, stations []data.Node, err error) {
 
 	stations = make([]data.Node, 0)
-
 	minWay := make([]*data.Node, 0)
 
 	route = &data.NodeRoute{Route: minWay, TotalCost: 0}
-
-	partialStart := start
 
 	type S struct{}
 	// already visited stations don't take again
@@ -125,7 +122,19 @@ func CalcStationDijkstraSnapshots(g *data.GraphProd, gasStations *data.GasStatio
 	snapshotStack := data.NewStack()
 	stationsVisitedCounter := 0
 
+	startSnap := data.Snapshot{PartialStart: start, PartialRoute: *route, Stations: stations}
+	snapshotStack.Push(startSnap)
+	blacklist[start.ID] = S{}
+
 	for {
+
+		snap, err := snapshotStack.Pop()
+		if err != nil {
+			return nil, nil, err
+		}
+		partialStart := snap.PartialStart
+		route = &snap.PartialRoute
+		stations = snap.Stations
 
 		wayCostEdges, err := CalcDijkstraToMany(g, partialStart)
 
@@ -135,7 +144,7 @@ func CalcStationDijkstraSnapshots(g *data.GraphProd, gasStations *data.GasStatio
 		}
 
 		if wayCostEdges[target.ID].Cost == math.MaxInt64 {
-			return nil, nil, errors.New("no way found")
+			continue
 		}
 
 		// is goal reachable?
@@ -145,8 +154,7 @@ func CalcStationDijkstraSnapshots(g *data.GraphProd, gasStations *data.GasStatio
 			partialRoute, _ := findWayToGoal(partialStart, target, g, wayCostEdges)
 
 			//reverse route
-			for i := len(partialRoute.Route) - 1; i >= 0; i-- {
-
+			for i := len(partialRoute.Route) - 1; i >= 1; i-- {
 				route.Route = append(route.Route, partialRoute.Route[i])
 			}
 			route.TotalCost += partialRoute.TotalCost
@@ -155,43 +163,50 @@ func CalcStationDijkstraSnapshots(g *data.GraphProd, gasStations *data.GasStatio
 
 		stationsVisitedCounter++
 		if stationsVisitedCounter > config.DijkstraMaxStations {
-			return nil, stations, errors.New("no way found")
+			return nil, stations, errors.New("too many stations visited already")
 		}
 
-		minStations, err := getMinDistanceStations(g.Nodes, wayCostEdges, gasStations, start, target, rangeCm, config.DijkstraMaxstationsPerStep)
+		minStations, err := getMinDistanceStations(g.Nodes, wayCostEdges, gasStations, target, rangeCm, config.DijkstraMaxstationsPerStep)
+
+		for _, node := range minStations {
+			logrus.Debug(wayCostEdges[node])
+		}
 
 		// no stations reachable -> go back to the previous station and try another one
 		if len(minStations) <= 0 {
-
-			snap, err := snapshotStack.Pop()
-			if err != nil {
-				return nil, nil, err
-			}
-
-			partialStart = snap.PartialStart
-			route = &snap.PartialRoute
-			stations = snap.Stations
-
+			continue
 		}
 
-		//save the other snapshots in stack
+		//save snapshots in  stack, continue with the closest one
 		// add way to this station to route and station to list
-		for _, node := range minStations {
+		for i := len(minStations) - 1; i >= 0; i-- {
+			node := minStations[i]
+
+			if _, ok := blacklist[node]; ok == true {
+				continue
+			}
 
 			partialTarget := g.Nodes[node]
-			partialRoute, _ := findWayToGoal(partialStart, partialTarget, g, wayCostEdges)
-			partialStart = g.Nodes[node]
-			//add route in reverse
-			for i := len(partialRoute.Route) - 1; i >= 1; i-- {
-				route.Route = append(route.Route, partialRoute.Route[i])
-			}
-			route.TotalCost += partialRoute.TotalCost
-			stations = append(stations, partialTarget)
 
-			//todo: maybe real copy neccessary
-			snapshot := data.Snapshot{PartialStart: partialStart, PartialRoute: *route, Stations: stations}
+			partialRoute, _ := findWayToGoal(partialStart, partialTarget, g, wayCostEdges)
+
+			//add route in reverse
+
+			newRouteList := route.Route
+			for i := len(partialRoute.Route) - 1; i >= 1; i-- {
+				newRouteList = append(newRouteList, partialRoute.Route[i])
+			}
+			logrus.Debug(len(newRouteList))
+			newCost := route.TotalCost + partialRoute.TotalCost
+			newRoute := data.NodeRoute{TotalCost: newCost, Route: newRouteList}
+			newstations := append(stations, partialTarget)
+
+			newPartialStart := g.Nodes[node]
+
+			snapshot := data.Snapshot{PartialStart: newPartialStart, PartialRoute: newRoute, Stations: newstations}
 
 			snapshotStack.Push(snapshot)
+
 			blacklist[node] = S{}
 		}
 
@@ -200,47 +215,59 @@ func CalcStationDijkstraSnapshots(g *data.GraphProd, gasStations *data.GasStatio
 }
 
 // getMinDistanceStations returns the count closest stations(air distance)
-func getMinDistanceStations(nodes []data.Node, wayCostEdges []data.Edge, stations *data.GasStations, start data.Node, target data.Node, rangeCm int64, count int) ([]int64, error) {
+func getMinDistanceStations(nodes []data.Node, wayCostEdges []data.Edge, stations *data.GasStations, target data.Node, rangeCm int64, count int) ([]int64, error) {
 
-	//look for closest station to target(airdistance)
+	distTable := make(map[int64]float64, len(stations.Stations))
 
-	type idDist struct {
-		id   int
-		dist float64
+	for i := range stations.Stations {
+		distTable[i] = CalcEuclidDist(nodes[i].Lat, nodes[i].Lon, target.Lat, target.Lon)
 	}
-
-	distTable := make([]idDist, len(wayCostEdges))
-
-	for i := range wayCostEdges {
-		distTable[i] = idDist{id: i, dist: CalcEuclidDist(nodes[i].Lat, nodes[i].Lon, target.Lat, target.Lon)}
-	}
-
-	//todo:not worth to sort
-	sort.Slice(distTable, func(i, j int) bool {
-		if wayCostEdges[i].Cost < rangeCm && wayCostEdges[j].Cost < rangeCm {
-			return distTable[i].dist < distTable[j].dist
-		} else if wayCostEdges[i].Cost < rangeCm && wayCostEdges[j].Cost >= rangeCm {
-			return true
-		} else if wayCostEdges[i].Cost >= rangeCm && wayCostEdges[j].Cost < rangeCm {
-			return false
-		} else {
-			// both unreachable; doesnt matter
-			return distTable[i].dist < distTable[j].dist
-		}
-	})
 
 	clostestStations := make([]int64, 0)
 
-	for i := 0; i < count; i++ {
-		if wayCostEdges[distTable[i].id].Cost < rangeCm {
-			clostestStations = append(clostestStations, int64(distTable[i].id))
-		} else {
-			return clostestStations, errors.New("no more reachable stations")
+	for stationID := range stations.Stations {
+
+		if wayCostEdges[stationID].Cost < rangeCm {
+
+			clostestStations = updateMinList(clostestStations, stationID, distTable, rangeCm, count)
+
 		}
 
 	}
 
+	if len(clostestStations) < count {
+		return clostestStations, errors.New("not enough stations found")
+	}
+
 	return clostestStations, nil
+
+}
+
+func updateMinList(minDistanceStations []int64, id int64, distTable map[int64]float64, rangeCm int64, count int) []int64 {
+
+	if len(minDistanceStations) < count {
+
+		minDistanceStations := append(minDistanceStations, id)
+
+		sort.Slice(minDistanceStations, func(i, j int) bool {
+			return distTable[minDistanceStations[i]] < distTable[minDistanceStations[j]]
+		})
+
+		return minDistanceStations
+	}
+
+	// check if the new distance is really smaller then replace biggest
+	maxMinDistanceStation := minDistanceStations[len(minDistanceStations)-1]
+	if distTable[maxMinDistanceStation] < distTable[id] {
+		return minDistanceStations
+	}
+
+	minDistanceStations[len(minDistanceStations)-1] = id
+	sort.Slice(minDistanceStations, func(i, j int) bool {
+		return distTable[minDistanceStations[i]] < distTable[minDistanceStations[j]]
+	})
+
+	return minDistanceStations
 
 }
 
@@ -287,7 +314,7 @@ func CalcEuclidDist(x1, x2, y1, y2 float64) float64 {
 }
 
 // StationsReachable checks if all stations are smaller infinite value to reach
-func StationsReachable(graph *data.GraphProd, start data.Coordinate) (Reachable []*data.Node, Unreachable []*data.Node) {
+func StationsReachable(graph *data.GraphProd, start data.Coordinate, reachCm int64) (Reachable []*data.Node, Unreachable []*data.Node) {
 
 	stations := data.GetFuelStations()
 
@@ -302,7 +329,7 @@ func StationsReachable(graph *data.GraphProd, start data.Coordinate) (Reachable 
 
 		goalNode := graph.Grid.FindNextNode(station.Lat, station.Lon, false)
 
-		if goalCosts[goalNode.ID].Cost >= math.MaxInt64 {
+		if goalCosts[goalNode.ID].Cost >= reachCm {
 			Unreachable = append(Unreachable, goalNode)
 			errorCount++
 		} else {

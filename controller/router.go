@@ -5,6 +5,7 @@ import (
 	"github.com/diezfx/OpenStreetmapRouting/data"
 
 	"net/http"
+	"net/http/pprof"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -35,6 +36,12 @@ func Start(graph *data.GraphProd, stations *data.GasStations, stationsGrid *data
 	s.router.HandleFunc("/v1/info", InfoHandler)
 	s.router.HandleFunc("/v1/stations", s.FuelStationHandler())
 	s.router.HandleFunc("/v1/reachablestations", s.ReachableStationsHandler())
+
+	s.router.HandleFunc("/debug/pprof/", pprof.Index)
+	s.router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	s.router.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	s.router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	s.router.HandleFunc("/debug/pprof/trace", pprof.Trace)
 
 	logrus.Infof("Server started at localhost:8000 ")
 	http.ListenAndServe("localhost:8000", handlers.CORS()(s.router))

@@ -1,9 +1,5 @@
 package data
 
-import (
-	"math"
-)
-
 // GetRoute reduced data for drawing
 type GetRoute struct {
 	Route GeoJSONRoute
@@ -29,6 +25,16 @@ type Coordinate struct {
 type NodeRoute struct {
 	Route     []*Node
 	TotalCost int64
+}
+
+func (nr *NodeRoute) GetCopy() NodeRoute {
+
+	newRoute := make([]*Node, len(nr.Route))
+
+	copy(newRoute, nr.Route)
+
+	return NodeRoute{TotalCost: nr.TotalCost, Route: newRoute}
+
 }
 
 // ConvertToJSON takes the nodeRoute and returns a geojson linestring
@@ -66,7 +72,7 @@ func ConvertAreaToJSON(route []*Edge, g *GraphProd) GeoJSONArea {
 // ConvertAreaToJSONReachable takes all route in an area and converts them to multilinestring geojson format
 // blue means reachable, red unreachable
 // returns 2 coordinate fiels, first reachable then unreachable
-func ConvertAreaToJSONReachable(route []*Edge, g *GraphProd, edgesCosts []Edge) (getAreaReachable GeoJSONArea, getAreaUnreachable GeoJSONArea) {
+func ConvertAreaToJSONReachable(route []*Edge, g *GraphProd, edgesCosts []Edge, reach int64) (getAreaReachable GeoJSONArea, getAreaUnreachable GeoJSONArea) {
 
 	getAreaReachable = GeoJSONArea{Type: "MultiLineString", Coordinates: make([][][]float64, 0), Style: &Style{Color: "blue"}}
 	getAreaUnreachable = GeoJSONArea{Type: "MultiLineString", Coordinates: make([][][]float64, 0), Style: &Style{Color: "#ff0043"}}
@@ -76,7 +82,7 @@ func ConvertAreaToJSONReachable(route []*Edge, g *GraphProd, edgesCosts []Edge) 
 		miniRoute := [][]float64{[]float64{g.Nodes[edge.Start].Lon, g.Nodes[edge.Start].Lat},
 			[]float64{g.Nodes[edge.End].Lon, g.Nodes[edge.End].Lat}}
 
-		if edgesCosts[edge.End].Cost >= math.MaxInt64 {
+		if edgesCosts[edge.End].Cost >= reach {
 			getAreaUnreachable.Coordinates = append(getAreaUnreachable.Coordinates, miniRoute)
 
 		} else {
